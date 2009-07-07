@@ -423,7 +423,9 @@ mirrorPlane:
 	}
 
 	inline void CalcPoint(const int cx, const int cy, number x0, number y0, number z0, number* clr) const {
+#ifdef PROTECT
 	try {
+#endif
 		VEC4D* ray0;
 #ifndef ANTI_ALIASING
 		ray0 = &(modelRays[cx + (256 * cy)]);
@@ -443,7 +445,7 @@ mirrorPlane:
 		DWORD result;
 		number rx,ry,rz;
 		number lx,ly,lz;
-		bool lensed;
+		bool lensed = false;
 		number tlr;
 		number x, y, z;
 		number dx,dy,dz,w, cot;
@@ -996,10 +998,12 @@ renderFloor:
 			}
 		}
 		RETURN_COLOR
+#ifdef PROTECT
 	} catch (...) {
 		clr[0] = rand() & 0xFF; clr[1] = rand() & 0xFF; clr[2] = rand() & 0xFF;
 		return;
 	}
+#endif
 	}
 
 	void Perform(const int from, const int to) const {
