@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<VisualStudioProject
+	ProjectType="Intel C++ Project"
+	Version="11.0"
+	Name="RAY"
+	ProjectGUID="{BF0C7AE6-B6BD-4023-BEB2-3D1FE999955E}"
+	VCNestedProjectGUID="{67B2946B-2790-4157-AE78-96A57AE97BC5}"
+	VCNestedProjectFileName="RAY.vcproj">
+	<Configurations/>
+	<Files/>
+</VisualStudioProject>
