@@ -63,6 +63,9 @@ LRESULT WINAPI MicroscopeMsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 			return result;
 		break;
 
+		case WM_KEYDOWN:
+			if (wParam == VK_F2) {antiAliasing = !antiAliasing;}
+			break;
 		case WM_HELP:
 			glassPoint = !glassPoint;
 			break;

@@ -101,7 +101,7 @@ int bFlags[128];
 #define HU  0x300000
 #define AVH 0x333333
 
-#define PROTECT
+//#define PROTECT
 RAY_PART* rayThings[15 * 9];
 
 namespace rt {
