@@ -1,0 +1,16 @@
+SPHERE
+
+ x = x0 + vx * t ...
+ (x - xs)^2 + ... = r^2
+ (x0 + vx * t - xs)^2 + ... - r^2 = 0
+ (x0 - xs + vx * t)^2 + ... - r^2 = 0
+ t^2 * (vx^2 + vy^2 + vz^2) + 2 * t * ((x0 - xs) * vx + ...) + (x0 - xs)^2 + ... - r^2 = 0
+
+vx^2 + vy^2 + vz^2 = 1
+xs - x0 =: dx, ... precalculate
+dx^2 + ... - r^2 =: c precalculate
+dx * vx + ... =: k
+
+ t^2 - 2 * k * t + c = 0
+ D = k^2 - c
+ t1,2 = k +- sqrt(D)
