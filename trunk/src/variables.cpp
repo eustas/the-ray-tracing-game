@@ -11,6 +11,8 @@ number rayAlpha = PI_2;
 number rayBeta = PI_2 / 4;
 number microX = -1.0;
 number microY = -1.0;
+int demoMode = 0;
+number fpsGap = 1.0;
 
 atomic<bool> castingRay;
 

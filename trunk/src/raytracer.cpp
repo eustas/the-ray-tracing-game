@@ -445,13 +445,13 @@ DWORD WINAPI RayTracerThreadFunction(LPVOID) {
 		}
 
 		sec = (t1 - s_tick).seconds();
-		if (sec > 1.0) {
+		if (sec > fpsGap) {
 			s_tick = t1;
 			sec = frameCount / sec;
-			long fps = (sec * 100);
-			long l = fps / 100;
-			long r = fps % 100;
-			sprintf_s(microFps, 32, "FPS=%d.%02d", (int)l, (int)r);
+			long fps = (sec * 1000);
+			long l = fps / 1000;
+			long r = fps % 1000;
+			sprintf_s(microFps, 32, "FPS=%d.%03d", (int)l, (int)r);
 			frameCount = 0;
 		}
 

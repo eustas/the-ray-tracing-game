@@ -1,6 +1,29 @@
 bool isLaptop = false;
 DWORD lastOnBatteryQuestTick = 0;
 
+void NextDemoMode() {
+	switch (demoMode) {
+		case 0:
+			rayAlpha = 0.0;
+			rayBeta = PI_2;
+			rayDist = 15.0;
+			microX = 7.5;
+			microY = 4.5;
+			fpsGap = 5.0;
+		break;
+
+		case 1:
+			rayAlpha = PI;
+			rayBeta = 0.0;
+			rayDist = 0.5;
+			microX = 1.5;
+			microY = 3.5;
+			fpsGap = 5.0;
+		break;
+	}
+	demoMode = (demoMode + 1) & 0x1;
+}
+
 void DoWheel(int zDelta) {
 	double z = zDelta / WHEEL_DELTA;
 	double tmp = rayDist * exp(-0.12 * z);
@@ -65,6 +88,7 @@ LRESULT WINAPI MicroscopeMsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 		case WM_KEYDOWN:
 			if (wParam == VK_F2) {antiAliasing = !antiAliasing;}
+			if (wParam == VK_F12) {NextDemoMode();}
 			break;
 		case WM_HELP:
 			glassPoint = !glassPoint;
@@ -133,8 +157,9 @@ LRESULT WINAPI MainMsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			break;
 
 		case WM_KEYDOWN:
-			if (wParam == VK_F1) {glassPoint = !glassPoint;}
-			if (wParam == VK_F2) {antiAliasing = !antiAliasing;}
+			if (wParam == VK_F1 ) {glassPoint = !glassPoint;}
+			if (wParam == VK_F2 ) {antiAliasing = !antiAliasing;}
+			if (wParam == VK_F12) {NextDemoMode();}
 			break;
 		case WM_MOUSEWHEEL:
 			zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
