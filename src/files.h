@@ -20,6 +20,8 @@
 #define FILE_MENU_HIGHLIGHT	L"menu-highlight.bmp"
 #define FILE_MANUAL_BUTTONS	L"manual-buttons.bmp"
 
+#define FILE_MANUAL_01PNG L"manual01.png"
+
 #define FILE_RECHARGE	L"recharge.wav"
 #define FILE_ALARM	L"alarm.wav"
 #define FILE_FATAL	L"fatal.wav"
