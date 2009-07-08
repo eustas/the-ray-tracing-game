@@ -302,6 +302,18 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\render-by-lines.class.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\src\variables.cpp"
 				>
 				<FileConfiguration
