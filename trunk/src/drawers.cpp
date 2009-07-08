@@ -154,6 +154,12 @@ void DrawPanel() {
 	int mVis = IsWindowVisible(mwnd) ? 5 : 4;
 	DrawTile(512 - 32, 384 - 32, mVis, 2, (LPDWORD)bits, tiles[0]);
 
+	int mGls = glassPoint ? 7 : 6;
+	DrawTile(512 - 96, 384 - 32, mGls, 3, (LPDWORD)bits, tiles[0]);
+
+	int mAli = antiAliasing ? 7 : 6;
+	DrawTile(512 - 64, 384 - 32, mAli, 2, (LPDWORD)bits, tiles[0]);
+
 	if (diagnoseState > 0) {
 		DrawDiagnose();
 	}

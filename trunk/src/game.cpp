@@ -153,11 +153,24 @@ void GameClick() {
 		return;
 	}
 
+	if (y0 < 384 - 32) {return;}
 
-	if ((x0 >= 512 - 32) && (y0 >= 384 - 32)) {
+	if (x0 >= 512 - 32) {
 		if (IsWindowVisible(mwnd)) { ShowWindow(mwnd, SW_HIDE); }
 		else { ShowWindow(mwnd, SW_SHOWDEFAULT); }
+		return;
 	}
+
+	if (x0 >= 512 - 64) {
+		antiAliasing = !antiAliasing;
+		return;
+	}
+
+	if (x0 >= 512 - 96) {
+		glassPoint = !glassPoint;
+		return;
+	}
+
 }
 
 void SetAlarm(int newAlarm) {

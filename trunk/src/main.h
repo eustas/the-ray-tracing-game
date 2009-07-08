@@ -10,6 +10,8 @@
 #define PIx2 6.2831853f
 #define PI_2 1.5707963f
 
+#include "png.h"
+
 #include <tbb\task_scheduler_init.h>
 #include <tbb\cache_aligned_allocator.h>
 #include <tbb\parallel_for.h>
@@ -99,6 +101,7 @@ void BuildRay();
 void LoadAll();
 void LoadTiles();
 LPDWORD LoadBmp(LPCWSTR fileName, int w, int h);
+LPDWORD LoadPng(LPCWSTR fileName, int w, int h);
 void LoadLevel(WCHAR* fileName, LEVEL* level);
 void LoadL10n();
 
