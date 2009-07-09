@@ -1,3 +1,5 @@
+#define Debug //fwprintf_s
+
 void LoadAll() {
 	LoadL10n();
 	LoadTiles();
@@ -262,117 +264,99 @@ void LoadLevel(WCHAR* fileName, LEVEL* level) {
 
 LPDWORD LoadPng(LPCWSTR fileName, int w, int h) {
 	LPDWORD result = new DWORD[w * h];
-
-	png_struct    *png_ptr = NULL;
-	png_info	*info_ptr = NULL;
-	png_byte      buf[8];
-	png_byte      *png_pixels = NULL;
-	png_byte      **row_pointers = NULL;
-	png_byte      *pix_ptr = NULL;
-	png_uint_32   row_bytes;
-	png_uint_32   width;
-	png_uint_32   height;
-	int           bit_depth;
-	int           channels;
-	int           color_type;
-	int           alpha_present;
-	int           row, col;
-	int           ret;
-	int           i;
-	long          dep_16;
-
+	png_struct *png_ptr = NULL;
+	png_info *info_ptr = NULL;
+	png_byte buf[8], *png_pixels = NULL, **row_pointers = NULL, *pix_ptr = NULL;
+	png_uint_32 row_bytes, width, height;
+	int bit_depth, channels, color_type, row, col, ret, i;
+	long dep_16;
 	FILE* png_file;
 
 	_wfopen_s(&png_file, fileName, L"rb");
 
-	ret = fread (buf, 1, 8, png_file);
+	ret = fread(buf, 1, 8, png_file);
 	if (ret != 8) {
 		fclose(png_file);
-		fwprintf_s(debugFile,L"png: load signature [%s]\n", fileName);
+		Debug(debugFile,L"png: load signature [%s]\n", fileName);
 		return result;
 	}
 
-	ret = png_check_sig (buf, 8);
+	ret = png_check_sig(buf, 8);
 	if (!ret) {
 		fclose(png_file);
-		fwprintf_s(debugFile,L"png: check signature [%s]\n", fileName);
+		Debug(debugFile,L"png: check signature [%s]\n", fileName);
 		return result;
 	}
 
-	png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png_ptr) {
 		fclose(png_file);
-		fwprintf_s(debugFile,L"png: alloc read structure [%s]\n", fileName);
+		Debug(debugFile,L"png: alloc read structure [%s]\n", fileName);
 		return result;
 	}
 
 	info_ptr = png_create_info_struct (png_ptr);
 	if (!info_ptr) {
-		png_destroy_read_struct (&png_ptr, NULL, NULL);
+		png_destroy_read_struct(&png_ptr, NULL, NULL);
 		fclose(png_file);
-		fwprintf_s(debugFile,L"png: alloc info structure [%s]\n", fileName);
+		Debug(debugFile,L"png: alloc info structure [%s]\n", fileName);
 		return result;
 	}
 
-	if (setjmp (png_jmpbuf(png_ptr))) {
-		png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
+	if (setjmp(png_jmpbuf(png_ptr))) {
+		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 		fclose(png_file);
-		fwprintf_s(debugFile,L"png: setjmp [%s]\n", fileName);
+		Debug(debugFile,L"png: setjmp [%s]\n", fileName);
 		return result;
 	}
 
-	png_init_io (png_ptr, png_file);
-	png_set_sig_bytes (png_ptr, 8);
-	png_read_info (png_ptr, info_ptr);
-	png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
+	png_init_io(png_ptr, png_file);
+	png_set_sig_bytes(png_ptr, 8);
+	png_read_info(png_ptr, info_ptr);
+	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
 
-	if (color_type == PNG_COLOR_TYPE_PALETTE) {png_set_expand (png_ptr);}
-	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) {png_set_expand (png_ptr);}
-	if (png_get_valid (png_ptr, info_ptr, PNG_INFO_tRNS)) {png_set_expand (png_ptr);}
+	if (color_type == PNG_COLOR_TYPE_PALETTE) {png_set_expand(png_ptr);}
+	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) {png_set_expand(png_ptr);}
+	if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {png_set_expand(png_ptr);}
 
-	png_read_update_info (png_ptr, info_ptr);
-	png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
+	png_read_update_info(png_ptr, info_ptr);
+	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
+	//if (color_type == PNG_COLOR_TYPE_RGB) {channels = 3;}
+	row_bytes = png_get_rowbytes(png_ptr, info_ptr);
 
-	if (color_type == PNG_COLOR_TYPE_GRAY) {channels = 1;}
-	else if (color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {channels = 2;}
-	else if (color_type == PNG_COLOR_TYPE_RGB) {channels = 3;}
-	else if (color_type == PNG_COLOR_TYPE_RGB_ALPHA) {channels = 4;}
-	else {channels = 0;}
-	alpha_present = (channels - 1) % 2;
-
-	row_bytes = png_get_rowbytes (png_ptr, info_ptr);
-
-	if ((png_pixels = (png_byte *) malloc (row_bytes * height * sizeof (png_byte))) == NULL) {
+	if ((png_pixels = (png_byte *) malloc(row_bytes * height * sizeof(png_byte))) == NULL) {
 		png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
 		fclose(png_file);
-		fwprintf_s(debugFile,L"png: alloc pixels [%s]\n", fileName);
+		Debug(debugFile,L"png: alloc pixels [%s]\n", fileName);
 		return result;
 	}
 
-	if ((row_pointers = (png_byte **) malloc (height * sizeof (png_bytep))) == NULL) {
-		png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
-		free (png_pixels);
+	if ((row_pointers = (png_byte **) malloc (height * sizeof(png_bytep))) == NULL) {
+		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+		free(png_pixels);
 		png_pixels = NULL;
 		fclose(png_file);
-		fwprintf_s(debugFile,L"png: alloc pointers [%s]\n", fileName);
+		Debug(debugFile,L"png: alloc pointers [%s]\n", fileName);
 		return result;
 	}
 
-	for (i = 0; i < (height); i++) {row_pointers[i] = png_pixels + i * row_bytes;}
-	png_read_image (png_ptr, row_pointers);
-	png_read_end (png_ptr, info_ptr);
-	png_destroy_read_struct (&png_ptr, &info_ptr, (png_infopp) NULL);
+	for (i = 0; i < height; i++) {row_pointers[i] = png_pixels + i * row_bytes;}
+	png_read_image(png_ptr, row_pointers);
+	png_read_end(png_ptr, info_ptr);
+	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
 	fclose(png_file);
 
 	pix_ptr = png_pixels;
-	fwprintf_s(debugFile,L"png: success [%s] %d %d %d\n", fileName, height, width, channels);
+	Debug(debugFile,L"png: success [%s] %d %d %d\n", fileName, height, width, channels);
 	for (row = 0; row < height; row++) {
 		for (col = 0; col < width; col++) {
-			for (i = 0; i < (channels - alpha_present); i++) {((LPBYTE)result)[(((row * width) + col) * 4) + 2 - i] = (int) *pix_ptr++;}
+			for (i = 0; i < channels; i++) {
+				((LPBYTE)result)[(((row * width) + col) * 4) + 2 - i] = (int) *pix_ptr++;
+			}
 		}
 	}
 
-	if (row_pointers != (unsigned char**) NULL) {free (row_pointers);}
-	if (png_pixels != (unsigned char*) NULL) {free (png_pixels);}
+	if (row_pointers != (unsigned char**) NULL) {free(row_pointers);}
+	if (png_pixels != (unsigned char*) NULL) {free(png_pixels);}
 	return result;
 }
