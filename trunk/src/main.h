@@ -10,7 +10,7 @@
 #define PIx2 6.2831853f
 #define PI_2 1.5707963f
 
-#include "png.h"
+#include <png.h>
 
 #include <tbb\task_scheduler_init.h>
 #include <tbb\cache_aligned_allocator.h>
