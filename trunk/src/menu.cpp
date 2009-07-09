@@ -71,7 +71,7 @@ void RenderMenu() {
 		for (int x = 0; x < 512; x++) {
 			DWORD v1 = menu[sh1 + x];
 			DWORD v3 = menuHighlight[sh1 + x];
-			if (v1 != v3) {
+			if (v3 != 0x0000FF) {
 				DWORD vF0F = ((((v1 & 0xFF00FF) * zz) + ((v3 & 0xFF00FF) * z)) >> 8) & 0xFF00FF;
 				DWORD v0F0 = ((((v1 & 0xFF00) * zz) + ((v3 & 0xFF00) * z)) >> 8) & 0xFF00;
 				DWORD v2 = menuText[sh1 + x];
