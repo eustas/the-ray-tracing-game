@@ -100,7 +100,7 @@ void BuildRay();
 // LOADERS
 void LoadAll();
 void LoadTiles();
-LPDWORD LoadBmp(LPCWSTR fileName, int w, int h);
+//LPDWORD LoadBmp(LPCWSTR fileName, int w, int h);
 LPDWORD LoadPng(LPCWSTR fileName, int w, int h);
 void LoadLevel(WCHAR* fileName, LEVEL* level);
 void LoadL10n();
