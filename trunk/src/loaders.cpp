@@ -268,7 +268,7 @@ LPDWORD LoadPng(LPCWSTR fileName, int w, int h) {
 	png_info *info_ptr = NULL;
 	png_byte buf[8], *png_pixels = NULL, **row_pointers = NULL, *pix_ptr = NULL;
 	png_uint_32 row_bytes, width, height;
-	int bit_depth, channels, color_type, row, col, ret, i;
+	int bit_depth, color_type, row, col, ret, i;
 	long dep_16;
 	FILE* png_file;
 
@@ -347,10 +347,10 @@ LPDWORD LoadPng(LPCWSTR fileName, int w, int h) {
 	fclose(png_file);
 
 	pix_ptr = png_pixels;
-	Debug(debugFile,L"png: success [%s] %d %d %d\n", fileName, height, width, channels);
+	Debug(debugFile,L"png: success [%s] %d %d %d\n", fileName, height, width);
 	for (row = 0; row < height; row++) {
 		for (col = 0; col < width; col++) {
-			for (i = 0; i < channels; i++) {
+			for (i = 0; i < 3; i++) {
 				((LPBYTE)result)[(((row * width) + col) * 4) + 2 - i] = (int) *pix_ptr++;
 			}
 		}

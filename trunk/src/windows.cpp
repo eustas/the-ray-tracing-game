@@ -2,6 +2,10 @@ bool isLaptop = false;
 DWORD lastOnBatteryQuestTick = 0;
 
 void NextDemoMode() {
+	fpsGap = 5.0;
+	stohasticIdx = 0;
+	lightAlpha = 0.0;
+	lightAlphaDelta = 0.0;
 	switch (demoMode) {
 		case 0:
 			rayAlpha = 0.0;
@@ -9,7 +13,6 @@ void NextDemoMode() {
 			rayDist = 15.0;
 			microX = 7.5;
 			microY = 4.5;
-			fpsGap = 5.0;
 		break;
 
 		case 1:
@@ -18,7 +21,6 @@ void NextDemoMode() {
 			rayDist = 0.5;
 			microX = 1.5;
 			microY = 3.5;
-			fpsGap = 5.0;
 		break;
 	}
 	demoMode = (demoMode + 1) & 0x1;

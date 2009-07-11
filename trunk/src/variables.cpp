@@ -14,6 +14,11 @@ number microY = -1.0;
 int demoMode = 0;
 number fpsGap = 1.0;
 
+number lightAlphaDelta = 0.005;
+double lightAlpha = 0.0;
+
+int stohasticIdx = -1;
+
 atomic<bool> castingRay;
 
 WCHAR debug[256];
