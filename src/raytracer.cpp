@@ -117,8 +117,6 @@ namespace rt {
 double nX[16], nZ[16], wX[16], wZ[16], poX[16], poZ[16];
 double p[16], roX[16], roZ[16], doX[16], doZ[16];
 
-double lightAlpha = 0.0;
-
 HANDLE rayTracerThread;
 DWORD  rayTracerThreadId;
 
@@ -134,6 +132,7 @@ number lastModelBeta	= 0.0;
 
 char microInfo[32];
 char microFps[32];
+char microFrm[32];
 
 #define CLASS_NAME RenderByLinesSimple
 #include"render-by-lines.class.cpp"
@@ -159,6 +158,37 @@ char microFps[32];
 #undef GLASS_POINT
 #undef CLASS_NAME
 
+double stohasticData[200];
+
+void ResetResults() {
+	if (stohasticIdx < 0) {return;}
+	stohasticIdx = 0;
+}
+
+void AddResult(double sec) {
+	if (stohasticIdx < 0) {return;}
+	stohasticData[stohasticIdx] = sec;
+	stohasticIdx++;
+
+	if (stohasticIdx != 200) {return;}
+	stohasticIdx = 0;
+
+	double tmp;
+	for (int i = 0; i < 200;i++) {
+		for (int j = 0; j < 199; j++) {
+			if (stohasticData[j] > stohasticData[j+1]) {
+				tmp = stohasticData[j];
+				stohasticData[j] = stohasticData[j+1];
+				stohasticData[j+1] = tmp;
+			}
+		}
+	}
+	tmp = 0.0;
+	for (int k = 70; k < 130; k++) {
+		tmp += stohasticData[k];
+	}
+	fwprintf_s(debugFile, L"stohastic mode=%d gp=%d aa=%d td=%f\n", demoMode, rt::glassPoint, rt::antiAliasing, tmp);
+}
 
 void DumpToCanvas() {
 	for (int yy = 0; yy < 256; yy++) {
@@ -286,9 +316,14 @@ void DoRayTrace() {
 	number newModelBeta = rayBeta;
 	number newRayDist = rayDist;
 	bool newAntiAliasing = antiAliasing;
+	bool newGlassPoint = glassPoint;
 
 	if ((newModelAlpha != lastModelAlpha) || (newModelBeta != lastModelBeta) || (newAntiAliasing != rt::antiAliasing)) {
 		RecalculateModelRays(newModelAlpha, newModelBeta, newAntiAliasing);
+		ResetResults();
+	}
+	if (newGlassPoint != rt::glassPoint) {
+		ResetResults();
 	}
 	number sina = sin(lastModelAlpha);
 	number sinb = sin(lastModelBeta);
@@ -302,7 +337,7 @@ void DoRayTrace() {
 		y = microY;
 	}
 
-	lightAlpha+=0.005;
+	lightAlpha += lightAlphaDelta;
 
 	for (int i = 0; i < 3; i++) {
 		VEC4D* light = &(lights[i]);
@@ -312,7 +347,7 @@ void DoRayTrace() {
 		light->z = sin(ang + lightAlpha) * COS_LA;
 	}
 
-	rt::glassPoint = glassPoint;
+	rt::glassPoint = newGlassPoint;
 
 	number x0 = x   + newRayDist * cosa * cosb;
 	number y0 = .5f + newRayDist * sinb;
@@ -330,6 +365,7 @@ void DoRayTrace() {
 
 	BuildRay();
 
+	tick_count t0 = tick_count::now();
 	if (!rt::antiAliasing) {
 		if (!rt::glassPoint) {
 			parallel_for(blocked_range<int>(0, 256, 1), RenderByLinesSimple(microLines, x0, y0, z0));
@@ -343,6 +379,9 @@ void DoRayTrace() {
 			parallel_for(blocked_range<int>(0, 256, 1), RenderByLinesAaGp(microLines, x0, y0, z0));
 		}
 	}
+	tick_count t1 = tick_count::now();
+	double sec = (t1-t0).seconds();
+	AddResult(sec);
 }
 
 void BuildRay() {
@@ -457,6 +496,12 @@ DWORD WINAPI RayTracerThreadFunction(LPVOID) {
 
 		DrawMicroText(microInfo, 1, 300 - 12 - 1);
 		DrawMicroText(microFps, 1, 1);
+
+		if (stohasticIdx >= 0) {
+			sprintf_s(microFrm, 32, "       %03d", stohasticIdx);
+			DrawMicroText(microFrm, 300 - 88 - 1, 300 - 12 - 1);
+		}
+
 		SetDIBitsToDevice(mdc, 0, 0, 300, 300, 0, 0, 0, 300, mbits, &mbmi, DIB_RGB_COLORS);
 	}
 	mallocThreadShutdownNotification(NULL);
