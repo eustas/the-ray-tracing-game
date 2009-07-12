@@ -158,7 +158,7 @@ char microFrm[32];
 #undef GLASS_POINT
 #undef CLASS_NAME
 
-double stohasticData[200];
+double stohasticData[500];
 
 void ResetResults() {
 	if (stohasticIdx < 0) {return;}
@@ -167,15 +167,18 @@ void ResetResults() {
 
 void AddResult(double sec) {
 	if (stohasticIdx < 0) {return;}
+
+	energy = 128 * ENERGY_SCALE;
+
 	stohasticData[stohasticIdx] = sec;
 	stohasticIdx++;
 
-	if (stohasticIdx != 200) {return;}
+	if (stohasticIdx != 500) {return;}
 	stohasticIdx = 0;
 
 	double tmp;
-	for (int i = 0; i < 200;i++) {
-		for (int j = 0; j < 199; j++) {
+	for (int i = 0; i < 500;i++) {
+		for (int j = 0; j < 499; j++) {
 			if (stohasticData[j] > stohasticData[j+1]) {
 				tmp = stohasticData[j];
 				stohasticData[j] = stohasticData[j+1];
@@ -184,10 +187,12 @@ void AddResult(double sec) {
 		}
 	}
 	tmp = 0.0;
-	for (int k = 70; k < 130; k++) {
+	for (int k = 150; k < 350; k++) {
 		tmp += stohasticData[k];
 	}
 	fwprintf_s(debugFile, L"stohastic mode=%d gp=%d aa=%d td=%f\n", demoMode, rt::glassPoint, rt::antiAliasing, tmp);
+	antiAliasing = !rt::glassPoint;
+	glassPoint = rt::antiAliasing;
 }
 
 void DumpToCanvas() {
