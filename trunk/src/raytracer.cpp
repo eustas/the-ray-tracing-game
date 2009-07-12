@@ -117,6 +117,10 @@ namespace rt {
 double nX[16], nZ[16], wX[16], wZ[16], poX[16], poZ[16];
 double p[16], roX[16], roZ[16], doX[16], doZ[16];
 
+VEC4D xRayT;
+VEC4D yRayT;
+VEC4D zRayT;
+
 HANDLE rayTracerThread;
 DWORD  rayTracerThreadId;
 
@@ -219,9 +223,9 @@ void RecalculateModelRays(number newModelAlpha, number newModelBeta, bool newAnt
 	//VEC4D zRay = {-cosa * cosb, -sinb, -sina * cosb, 1.0f};
 	//VEC4D yRay = {-cosa * sinb,  cosb, -sina * sinb, 1.0f};
 	//VEC4D xRay = { sina       ,  0.0f, -cosa       , 1.0f};
-	VEC4D xRayT = { sina       ,  -cosa * sinb, -cosa * cosb, 0.0f};
-	VEC4D yRayT = {        0.0f,  cosb        , -sinb       , 0.0f};
-	VEC4D zRayT = {-cosa       , -sinb * sina , -sina * cosb, 0.0f};
+	xRayT.x = sina; xRayT.y = -cosa * sinb; xRayT.z = -cosa * cosb;
+	yRayT.x = 0.0; yRayT.y = cosb; yRayT.z = -sinb;
+	zRayT.x = -cosa; zRayT.y = -sinb * sina; zRayT.z = -sina * cosb;
 	//VEC4D wRayT = {        0.0f,  0.0f        ,         0.0f, 1.0f};
 	int idx = 0, idx2 = 0;
 	if (!newAntiAliasing) {for (int y = 0; y < 256; y++) {
@@ -234,8 +238,8 @@ void RecalculateModelRays(number newModelAlpha, number newModelBeta, bool newAnt
 			}
 			idx++;
 		}
-	}} else {for (int y = 0; y < 256; y++) {
-		for (int x = 0; x < 256; x++) {
+	}} else {
+		/*for (int y = 0; y < 256; y++) { for (int x = 0; x < 256; x++) {
 			if (objectiveWindow[idx]) {
 				idx2 = idx * 4;
 				modelRaysA[idx2].x = (xRayT.x * basicRaysA[idx2].x) + (xRayT.y * basicRaysA[idx2].y) + (xRayT.z * basicRaysA[idx2].z);
@@ -262,8 +266,8 @@ void RecalculateModelRays(number newModelAlpha, number newModelBeta, bool newAnt
 				//modelRays[idx2].w = 1.0f;
 			}
 			idx++;
-		}
-	}}
+		}}*/
+	}
 	
 }
 
