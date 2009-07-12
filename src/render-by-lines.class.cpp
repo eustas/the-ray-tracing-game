@@ -422,15 +422,9 @@ mirrorPlane:
 		return true;
 	}
 
-	inline void CalcPoint(const int cx, const int cy, number x0, number y0, number z0, number* clr) const {
+	inline void CalcPoint(VEC4D* ray0, number x0, number y0, number z0, number* clr) const {
 #ifdef PROTECT
 	try {
-#endif
-		VEC4D* ray0;
-#ifndef ANTI_ALIASING
-		ray0 = &(modelRays[cx + (256 * cy)]);
-#else
-		ray0 = &(modelRaysA[cx + (1024 * cy)]);
 #endif
 		number vx = ray0->x;
 		number vy = ray0->y;
@@ -1008,13 +1002,14 @@ renderFloor:
 
 	void Perform(const int from, const int to) const {
 		LPDWORD* lines = my_lines;
-		number x0 = my_x0;
-		number y0 = my_y0;
-		number z0 = my_z0;
+		number x1 = my_x0;
+		number y1 = my_y0;
+		number z1 = my_z0;
 		number clrs0[3];
 		number clrs1[3];
 		number clrs2[3];
 		number clrs3[3];
+		VEC4D ray0;
 		for (int yy = from; yy != to; yy++) {
 			int y = 127 - (yy / 2);
 			if ((yy & 0x1) == 1) {
@@ -1024,17 +1019,62 @@ renderFloor:
 #ifndef ANTI_ALIASING
 				for (int x = 0; x < 256; x++) {
 					if (objectiveWindow[x + (256 * y)]) {
-						CalcPoint(x, y, x0, y0, z0, clrs0);
+						CalcPoint(&(modelRays[x + (256 * y)]), x1, y1, z1, clrs0);
 						line[x] = TO_RGB(clrs0);
 					}
 				}
 #else 
 				for (int x = 0; x < 256; x++) {
 					if (objectiveWindow[x + (256 * y)]) {
-						CalcPoint(x * 4    , y, x0, y0, z0, clrs0);
-						CalcPoint(x * 4 + 1, y, x0, y0, z0, clrs1);
-						CalcPoint(x * 4 + 2, y, x0, y0, z0, clrs2);
-						CalcPoint(x * 4 + 3, y, x0, y0, z0, clrs3);
+						number x0,y0,z0,l;
+						x0 = (x + AA_X - 127.5) / 127.5;
+						y0 = (127.5 - y - AA_Y) / 127.5;
+						z0 = SCREEN_Z;
+						l = 1.0 / sqrt( (x0 * x0) + (y0 * y0) + (z0 * z0) );
+						x0 = x0 * l;
+						y0 = y0 * l;
+						z0 = z0 * l;
+						ray0.x = (xRayT.x * x0) + (xRayT.y * y0) + (xRayT.z * z0);
+						ray0.y = (yRayT.x * x0) + (yRayT.y * y0) + (yRayT.z * z0);
+						ray0.z = (zRayT.x * x0) + (zRayT.y * y0) + (zRayT.z * z0);
+						CalcPoint(&ray0, x1, y1, z1, clrs0);
+
+						x0 = (x - AA_Y - 127.5) / 127.5;
+						y0 = (127.5 - y - AA_X) / 127.5;
+						z0 = SCREEN_Z;
+						l = 1.0 / sqrt( (x0 * x0) + (y0 * y0) + (z0 * z0) );
+						x0 = x0 * l;
+						y0 = y0 * l;
+						z0 = z0 * l;
+						ray0.x = (xRayT.x * x0) + (xRayT.y * y0) + (xRayT.z * z0);
+						ray0.y = (yRayT.x * x0) + (yRayT.y * y0) + (yRayT.z * z0);
+						ray0.z = (zRayT.x * x0) + (zRayT.y * y0) + (zRayT.z * z0);
+						CalcPoint(&ray0, x1, y1, z1, clrs1);
+
+						x0 = (x - AA_X - 127.5) / 127.5;
+						y0 = (127.5 - y + AA_Y) / 127.5;
+						z0 = SCREEN_Z;
+						l = 1.0 / sqrt( (x0 * x0) + (y0 * y0) + (z0 * z0) );
+						x0 = x0 * l;
+						y0 = y0 * l;
+						z0 = z0 * l;
+						ray0.x = (xRayT.x * x0) + (xRayT.y * y0) + (xRayT.z * z0);
+						ray0.y = (yRayT.x * x0) + (yRayT.y * y0) + (yRayT.z * z0);
+						ray0.z = (zRayT.x * x0) + (zRayT.y * y0) + (zRayT.z * z0);
+						CalcPoint(&ray0, x1, y1, z1, clrs2);
+
+						x0 = (x + AA_Y - 127.5) / 127.5;
+						y0 = (127.5 - y + AA_X) / 127.5;
+						z0 = SCREEN_Z;
+						l = 1.0 / sqrt( (x0 * x0) + (y0 * y0) + (z0 * z0) );
+						x0 = x0 * l;
+						y0 = y0 * l;
+						z0 = z0 * l;
+						ray0.x = (xRayT.x * x0) + (xRayT.y * y0) + (xRayT.z * z0);
+						ray0.y = (yRayT.x * x0) + (yRayT.y * y0) + (yRayT.z * z0);
+						ray0.z = (zRayT.x * x0) + (zRayT.y * y0) + (zRayT.z * z0);
+						CalcPoint(&ray0, x1, y1, z1, clrs3);
+
 						clrs0[0] = 0.25 * (clrs0[0] + clrs1[0] + clrs2[0] + clrs3[0]);
 						clrs0[1] = 0.25 * (clrs0[1] + clrs1[1] + clrs2[1] + clrs3[1]);
 						clrs0[2] = 0.25 * (clrs0[2] + clrs1[2] + clrs2[2] + clrs3[2]);
