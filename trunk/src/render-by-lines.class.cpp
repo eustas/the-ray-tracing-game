@@ -846,19 +846,16 @@ fullReflect:
 				break;
 
 				case EMITTER:
-							clr[1] += 1.0;
-							RETURN_COLOR
-
 //					if (state == LEFT) {
 						doCone = false;
-						sx = 1.0 + mx - x0;
+						sx = mx - x0;
 						sy = 0.5 - y0;
-						sz = 0.5 + mz - z0;
-						k = (sy * vy) + (sz * vz) - (sx * vx * E_INV_64_CONE_H_2);
-						coneC = (sy * sy) + (sz * sz) - (sx * sx * E_INV_64_CONE_H_2);
-						econeA = (vy * vy) + (vz * vz) - (vx * vx * INV_64_CONE_H_2);
+						sz = (0.5 + mz) - z0;
+						k = (sy * vy) + (sz * vz) - (sx * vx * E_INV_16_CONE_H_2);
+						coneC = (sy * sy) + (sz * sz) - (sx * sx * E_INV_16_CONE_H_2);
+						econeA = (vy * vy) + (vz * vz) - (vx * vx * E_INV_16_CONE_H_2);
 						D = k * k - econeA * coneC;
-						einvConeA = 1 / coneA;
+						einvConeA = 1 / econeA;
 						if (D <= 0.0) { break; }
 						D = sqrt(D);
 						if (econeA > 0.0) {
@@ -868,9 +865,9 @@ fullReflect:
 							t2 = (k - D) * einvConeA;
 							t1 = (k + D) * einvConeA;
 						}
-						x = x0 + vx * t1;
+						x = (mx + 1.0) - (x0 + (vx * t1));
 						if (x > E_CONE_H) {
-							x = x0 + vx * t2;
+							x = (mx + 1.0) - (x0 + (vx * t2));
 							if (x > E_CONE_H) { break; }
 							t1 = t2;
 						}
@@ -891,6 +888,7 @@ fullReflect:
 						if (doCone) {
 rayLast = cot;
 							x = cox; y = coy; z = coz; nx = conx; ny = cony; nz = conz;
+
 							mat = &(materials[MAT_DIF_CON]);
 							for (int i = 0; i < 3; i++) {
 								if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
