@@ -5,10 +5,13 @@
 #define QUANT_R_2 0.04
 #define INV_QUANT_R 5.0
 #define CONE_H 0.35
+#define E_CONE_H 1.0
+#define E_INV_64_CONE_H_2 0.015625
 #define MIRROR_R_2 0.0225
 #define MIRROR_WR_2 0.0169
 #define INV_64_CONE_H_2 0.12755102040816326530612244897959
 #define CONE_DY 0.24253562503633297351890646211612
+#define E_CONE_DY 0.24253562503633297351890646211612
 #define RAY_R_2 0.0006
 
 #define GLASS_K     1.1764705882352941176470588235294
@@ -67,6 +70,12 @@
 
 // 1 / (2 * h * sqrt(17))
 #define CONE_YR_Y 0.34647946433761853359843780302303
+
+// 1 / (2 * sqrt(17))
+#define E_CONE_YR_P 0.12126781251816648675945323105806
+
+// 1 / (2 * h * sqrt(17))
+#define E_CONE_YR_Y 0.12126781251816648675945323105806
 
 VEC4D lights[3];
 VEC4D lightsClr[3];
@@ -191,7 +200,8 @@ void AddResult(double sec) {
 		}
 	}
 	tmp = 0.0;
-	for (int k = 150; k < 350; k++) {
+	//for (int k = 150; k < 350; k++) {
+	for (int k = 0; k < 10; k++) {
 		tmp += stohasticData[k];
 	}
 	fwprintf_s(debugFile, L"stohastic mode=%d gp=%d aa=%d td=%f\n", demoMode, rt::glassPoint, rt::antiAliasing, tmp);
@@ -239,7 +249,7 @@ void RecalculateModelRays(number newModelAlpha, number newModelBeta, bool newAnt
 			idx++;
 		}
 	}} else {
-		/*for (int y = 0; y < 256; y++) { for (int x = 0; x < 256; x++) {
+		for (int y = 0; y < 256; y++) { for (int x = 0; x < 256; x++) {
 			if (objectiveWindow[idx]) {
 				idx2 = idx * 4;
 				modelRaysA[idx2].x = (xRayT.x * basicRaysA[idx2].x) + (xRayT.y * basicRaysA[idx2].y) + (xRayT.z * basicRaysA[idx2].z);
@@ -266,7 +276,7 @@ void RecalculateModelRays(number newModelAlpha, number newModelBeta, bool newAnt
 				//modelRays[idx2].w = 1.0f;
 			}
 			idx++;
-		}}*/
+		}}
 	}
 	
 }
