@@ -422,9 +422,15 @@ mirrorPlane:
 		return true;
 	}
 
-	inline void CalcPoint(VEC4D* ray0, number x0, number y0, number z0, number* clr) const {
+	inline void CalcPoint(const int cx, const int cy, number x0, number y0, number z0, number* clr) const {
 #ifdef PROTECT
 	try {
+#endif
+		VEC4D* ray0;
+#ifndef ANTI_ALIASING
+		ray0 = &(modelRays[cx + (256 * cy)]);
+#else
+		ray0 = &(modelRaysA[cx + (1024 * cy)]);
 #endif
 		number vx = ray0->x;
 		number vy = ray0->y;
@@ -432,7 +438,8 @@ mirrorPlane:
 		number coneA = (vx * vx) + (vz * vz) - (vy * vy * INV_64_CONE_H_2);
 		number invConeA = 1 / coneA;
 		bool cAp = coneA > 0.0;
-		number D, k, t1, t2, t3, t4, tmp, temp;
+		number sx,sy,sz,k,coneC, econeA, einvConeA;
+		number D, t1, t2, t3, t4, tmp, temp;
 		number nx,ny,nz;
 		number a,b,c;
 		number tResult;
@@ -838,13 +845,72 @@ fullReflect:
 					}
 				break;
 
+				case EMITTER:
+							clr[1] += 1.0;
+							RETURN_COLOR
+
+//					if (state == LEFT) {
+						doCone = false;
+						sx = 1.0 + mx - x0;
+						sy = 0.5 - y0;
+						sz = 0.5 + mz - z0;
+						k = (sy * vy) + (sz * vz) - (sx * vx * E_INV_64_CONE_H_2);
+						coneC = (sy * sy) + (sz * sz) - (sx * sx * E_INV_64_CONE_H_2);
+						econeA = (vy * vy) + (vz * vz) - (vx * vx * INV_64_CONE_H_2);
+						D = k * k - econeA * coneC;
+						einvConeA = 1 / coneA;
+						if (D <= 0.0) { break; }
+						D = sqrt(D);
+						if (econeA > 0.0) {
+							t1 = (k - D) * einvConeA;
+							t2 = (k + D) * einvConeA;
+						} else {
+							t2 = (k - D) * einvConeA;
+							t1 = (k + D) * einvConeA;
+						}
+						x = x0 + vx * t1;
+						if (x > E_CONE_H) {
+							x = x0 + vx * t2;
+							if (x > E_CONE_H) { break; }
+							t1 = t2;
+						}
+						if (x < 0.0) { break; }
+						if (t1 < rayFirst) {break;}
+						tmp = E_CONE_YR_P - (E_CONE_YR_Y * x); // tmp == r
+						if (tmp <= 0.0) {break;}
+						tmp = 1 / tmp;
+						cot = t1;
+						t2 = t1 - 0.00001;
+						x = x0 + vx * t2;
+						y = y0 + vy * t2;
+						z = z0 + vz * t2;
+						nx = -E_CONE_DY;
+						ny =  (y - 0.5) * tmp;
+						nz = (z - mz - 0.5) * tmp;
+						tResult = t1; doCone = true; cox = x; coy = y; coz = z; conx= nx; cony = ny; conz = nz;
+						if (doCone) {
+rayLast = cot;
+							x = cox; y = coy; z = coz; nx = conx; ny = cony; nz = conz;
+							mat = &(materials[MAT_DIF_CON]);
+							for (int i = 0; i < 3; i++) {
+								if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
+									intense = DIFFUSE(i) * colorFactor;
+									ADD_COLOR
+								}
+							}
+							clr[0] += 0.25; clr[1] += 0.25; clr[2] += 0.25;
+							RETURN_COLOR
+						}
+//					}
+				break;
+
 				case MIRROR:
 					doCone = false;
-					number sx = .5 + mx - x0;
-					number sy = CONE_H - y0;
-					number sz = .5 + mz - z0;
-					number k = (sx * vx) + (sz * vz) - (sy * vy * INV_64_CONE_H_2);
-					number coneC = (sx * sx) + (sz * sz) - (sy * sy * INV_64_CONE_H_2);
+					sx = .5 + mx - x0;
+					sy = CONE_H - y0;
+					sz = .5 + mz - z0;
+					k = (sx * vx) + (sz * vz) - (sy * vy * INV_64_CONE_H_2);
+					coneC = (sx * sx) + (sz * sz) - (sy * sy * INV_64_CONE_H_2);
 					D = k * k - coneA * coneC;
 					if (D <= 0.0) { goto mirrorPlane; }
 					D = sqrt(D);
@@ -1002,14 +1068,13 @@ renderFloor:
 
 	void Perform(const int from, const int to) const {
 		LPDWORD* lines = my_lines;
-		number x1 = my_x0;
-		number y1 = my_y0;
-		number z1 = my_z0;
+		number x0 = my_x0;
+		number y0 = my_y0;
+		number z0 = my_z0;
 		number clrs0[3];
 		number clrs1[3];
 		number clrs2[3];
 		number clrs3[3];
-		VEC4D ray0;
 		for (int yy = from; yy != to; yy++) {
 			int y = 127 - (yy / 2);
 			if ((yy & 0x1) == 1) {
@@ -1019,62 +1084,17 @@ renderFloor:
 #ifndef ANTI_ALIASING
 				for (int x = 0; x < 256; x++) {
 					if (objectiveWindow[x + (256 * y)]) {
-						CalcPoint(&(modelRays[x + (256 * y)]), x1, y1, z1, clrs0);
+						CalcPoint(x, y, x0, y0, z0, clrs0);
 						line[x] = TO_RGB(clrs0);
 					}
 				}
 #else 
 				for (int x = 0; x < 256; x++) {
 					if (objectiveWindow[x + (256 * y)]) {
-						number x0,y0,z0,l;
-						x0 = (x + AA_X - 127.5) / 127.5;
-						y0 = (127.5 - y - AA_Y) / 127.5;
-						z0 = SCREEN_Z;
-						l = 1.0 / sqrt( (x0 * x0) + (y0 * y0) + (z0 * z0) );
-						x0 = x0 * l;
-						y0 = y0 * l;
-						z0 = z0 * l;
-						ray0.x = (xRayT.x * x0) + (xRayT.y * y0) + (xRayT.z * z0);
-						ray0.y = (yRayT.x * x0) + (yRayT.y * y0) + (yRayT.z * z0);
-						ray0.z = (zRayT.x * x0) + (zRayT.y * y0) + (zRayT.z * z0);
-						CalcPoint(&ray0, x1, y1, z1, clrs0);
-
-						x0 = (x - AA_Y - 127.5) / 127.5;
-						y0 = (127.5 - y - AA_X) / 127.5;
-						z0 = SCREEN_Z;
-						l = 1.0 / sqrt( (x0 * x0) + (y0 * y0) + (z0 * z0) );
-						x0 = x0 * l;
-						y0 = y0 * l;
-						z0 = z0 * l;
-						ray0.x = (xRayT.x * x0) + (xRayT.y * y0) + (xRayT.z * z0);
-						ray0.y = (yRayT.x * x0) + (yRayT.y * y0) + (yRayT.z * z0);
-						ray0.z = (zRayT.x * x0) + (zRayT.y * y0) + (zRayT.z * z0);
-						CalcPoint(&ray0, x1, y1, z1, clrs1);
-
-						x0 = (x - AA_X - 127.5) / 127.5;
-						y0 = (127.5 - y + AA_Y) / 127.5;
-						z0 = SCREEN_Z;
-						l = 1.0 / sqrt( (x0 * x0) + (y0 * y0) + (z0 * z0) );
-						x0 = x0 * l;
-						y0 = y0 * l;
-						z0 = z0 * l;
-						ray0.x = (xRayT.x * x0) + (xRayT.y * y0) + (xRayT.z * z0);
-						ray0.y = (yRayT.x * x0) + (yRayT.y * y0) + (yRayT.z * z0);
-						ray0.z = (zRayT.x * x0) + (zRayT.y * y0) + (zRayT.z * z0);
-						CalcPoint(&ray0, x1, y1, z1, clrs2);
-
-						x0 = (x + AA_Y - 127.5) / 127.5;
-						y0 = (127.5 - y + AA_X) / 127.5;
-						z0 = SCREEN_Z;
-						l = 1.0 / sqrt( (x0 * x0) + (y0 * y0) + (z0 * z0) );
-						x0 = x0 * l;
-						y0 = y0 * l;
-						z0 = z0 * l;
-						ray0.x = (xRayT.x * x0) + (xRayT.y * y0) + (xRayT.z * z0);
-						ray0.y = (yRayT.x * x0) + (yRayT.y * y0) + (yRayT.z * z0);
-						ray0.z = (zRayT.x * x0) + (zRayT.y * y0) + (zRayT.z * z0);
-						CalcPoint(&ray0, x1, y1, z1, clrs3);
-
+						CalcPoint(x * 4    , y, x0, y0, z0, clrs0);
+						CalcPoint(x * 4 + 1, y, x0, y0, z0, clrs1);
+						CalcPoint(x * 4 + 2, y, x0, y0, z0, clrs2);
+						CalcPoint(x * 4 + 3, y, x0, y0, z0, clrs3);
 						clrs0[0] = 0.25 * (clrs0[0] + clrs1[0] + clrs2[0] + clrs3[0]);
 						clrs0[1] = 0.25 * (clrs0[1] + clrs1[1] + clrs2[1] + clrs3[1]);
 						clrs0[2] = 0.25 * (clrs0[2] + clrs1[2] + clrs2[2] + clrs3[2]);
