@@ -6,7 +6,8 @@
 #define INV_QUANT_R 5.0
 #define MIRROR_R_2 0.0225
 #define MIRROR_WR_2 0.0169
-#define RAY_R_2 0.0006
+#define RAY_R_2 0.000625
+#define RAY_R 0.025
 
 #define CONE_H 0.35
 #define INV_64_CONE_H_2 0.12755102040816326530612244897959

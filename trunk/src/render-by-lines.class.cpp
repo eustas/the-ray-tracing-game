@@ -848,7 +848,7 @@ fullReflect:
 				case EMITTER:
 //					if (state == LEFT) {
 						doCone = false;
-						sx = mx - x0;
+						sx = mx - 0.1 - x0;
 						sy = 0.5 - y0;
 						sz = (0.5 + mz) - z0;
 						k = (sy * vy) + (sz * vz) - (sx * vx * E_INV_16_CONE_H_2);
@@ -865,13 +865,13 @@ fullReflect:
 							t2 = (k - D) * einvConeA;
 							t1 = (k + D) * einvConeA;
 						}
-						x = (mx + 1.0) - (x0 + (vx * t1));
-						if (x > E_CONE_H) {
-							x = (mx + 1.0) - (x0 + (vx * t2));
-							if (x > E_CONE_H) { break; }
+						x = (mx + 1.0 - 0.1) - (x0 + (vx * t1));
+						if (x > E_CONE_H - 0.1) {
+							x = (mx + 1.0 - 0.1) - (x0 + (vx * t2));
+							if (x > E_CONE_H - 0.1) { break; }
 							t1 = t2;
 						}
-						if (x < 0.0) { break; }
+						if (x < 0.1) { break; }
 						if (t1 < rayFirst) {break;}
 						tmp = E_CONE_YR_P - (E_CONE_YR_Y * x); // tmp == r
 						if (tmp <= 0.0) {break;}
