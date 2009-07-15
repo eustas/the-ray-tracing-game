@@ -471,6 +471,7 @@ mirrorPlane:
 		bool hasRay = false;
 		int dir;
 		int rayIdx = 0;
+		int doThing;
 
 
 		if (!CalcTimeBox(x0, y0, z0, vx, vy, vz, tStart, tEnd, boundsFloor)) { RETURN_BLACK }
@@ -846,8 +847,9 @@ fullReflect:
 				break;
 
 				case EMITTER:
+					tResult = LAST_T;
+					doThing = -1;
 //					if (state == LEFT) {
-						doCone = false;
 						sx = mx - 0.1 - x0;
 						sy = 0.5 - y0;
 						sz = (0.5 + mz) - z0;
@@ -856,7 +858,7 @@ fullReflect:
 						econeA = (vy * vy) + (vz * vz) - (vx * vx * E_INV_16_CONE_H_2);
 						D = k * k - econeA * coneC;
 						einvConeA = 1 / econeA;
-						if (D <= 0.0) { break; }
+						if (D <= 0.0) { goto emi1; }
 						D = sqrt(D);
 						if (econeA > 0.0) {
 							t1 = (k - D) * einvConeA;
@@ -868,13 +870,13 @@ fullReflect:
 						x = (mx + 1.0 - 0.1) - (x0 + (vx * t1));
 						if (x > E_CONE_H - 0.1) {
 							x = (mx + 1.0 - 0.1) - (x0 + (vx * t2));
-							if (x > E_CONE_H - 0.1) { break; }
+							if (x > E_CONE_H - 0.1) { goto emi1; }
 							t1 = t2;
 						}
-						if (x < 0.1) { break; }
-						if (t1 < rayFirst) {break;}
+						if (x < 0.1) { goto emi1; }
+						if (t1 < rayFirst) {goto emi1;}
 						tmp = E_CONE_YR_P - (E_CONE_YR_Y * x); // tmp == r
-						if (tmp <= 0.0) {break;}
+						if (tmp <= 0.0) {goto emi1;}
 						tmp = 1 / tmp;
 						cot = t1;
 						t2 = t1 - 0.00001;
@@ -884,22 +886,78 @@ fullReflect:
 						nx = -E_CONE_DY;
 						ny =  (y - 0.5) * tmp;
 						nz = (z - mz - 0.5) * tmp;
-						tResult = t1; doCone = true; cox = x; coy = y; coz = z; conx= nx; cony = ny; conz = nz;
-						if (doCone) {
-rayLast = cot;
-							x = cox; y = coy; z = coz; nx = conx; ny = cony; nz = conz;
-
-							mat = &(materials[MAT_DIF_CON]);
-							for (int i = 0; i < 3; i++) {
-								if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
-									intense = DIFFUSE(i) * colorFactor;
-									ADD_COLOR
-								}
-							}
-							clr[0] += 0.25; clr[1] += 0.25; clr[2] += 0.25;
-							RETURN_COLOR
-						}
+						tResult = t1; doThing = 0; cox = x; coy = y; coz = z; conx= nx; cony = ny; conz = nz;
 //					}
+emi1:
+//					if (state == LEFT) {
+						if (vx == 0.0) {goto emi2;}
+						t1 = (mx - x0) / vx;
+						if (t1 < rayFirst) {goto emi2;}
+						if (t1 > tResult) {goto emi2;}
+						y = y0 + vy * t1 - 0.5;
+						z = z0 + vz * t1 - mz - 0.5;
+						t2 = (y * y) + (z * z);
+						if (t2 > RAY_R_2) {goto emi2;}
+						cot = t1;
+						tResult = t1; doThing = 1;
+//					}
+emi2:
+//					if (state == LEFT) {
+						a = (vx * vx * 4.0) + (vy * vy) + (vz * vz);
+						x = mx + 0.25 - x0;
+						y = 0.5 - y0;
+						z = mz + 0.5 - z0;
+						k = (4.0 * x * vx) + (y * vy) + (z * vz);
+						c = (4.0 * x * x) + (y * y) + (z * z) - 0.04;
+						D = k * k - a * c;
+						if (D < 0.0) {goto emi3;}
+						D = sqrt(D);
+						a = 1 / a;
+						t1 = (k - D) * a;
+						if (t1 < rayFirst) {t1 = (k + D) * a;}
+						if (t1 < rayFirst) {goto emi3;}
+						if (t1 > tResult) {goto emi3;}
+						t1 = t1 - 0.0001;
+						cox = x0 + vx * t1;
+						coy = y0 + vy * t1;
+						coz = z0 + vz * t1;
+						conx = 5.0 * 4.0 * (cox - mx - 0.25);
+						cony = 5.0 * (coy - 0.5);
+						conz = 5.0 * (coz - 0.5 - mz);
+						cot = t1;
+						tResult = t1; doThing = 2;
+//					}
+
+emi3:
+					if (doThing == -1) {break;}
+					if (doThing == 0) {
+rayLast = cot;
+						x = cox; y = coy; z = coz; nx = conx; ny = cony; nz = conz;
+
+						mat = &(materials[MAT_DIF_CON]);
+						for (int i = 0; i < 3; i++) {
+							if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
+								intense = DIFFUSE(i) * colorFactor;
+								ADD_COLOR
+							}
+						}
+						clr[0] += 0.25; clr[1] += 0.25; clr[2] += 0.25;
+					} else if (doThing == 1) {
+						clr[2] += 1.0;
+					} else if (doThing == 2) {
+rayLast = cot;
+						x = cox; y = coy; z = coz; nx = conx; ny = cony; nz = conz;
+
+						mat = &(materials[MAT_DIF_CON]);
+						for (int i = 0; i < 3; i++) {
+							if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
+								intense = DIFFUSE(i) * colorFactor;
+								ADD_COLOR
+							}
+						}
+						clr[0] += 0.25; clr[1] += 0.25; clr[2] += 0.25;
+					}
+					RETURN_COLOR
 				break;
 
 				case MIRROR:
