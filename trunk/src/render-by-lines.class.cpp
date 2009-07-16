@@ -903,12 +903,12 @@ emi1:
 //					}
 emi2:
 //					if (state == LEFT) {
-						a = (vx * vx * 4.0) + (vy * vy) + (vz * vz);
+						a = (vx * vx * 16.0) + (vy * vy) + (vz * vz);
 						x = mx + 0.25 - x0;
 						y = 0.5 - y0;
 						z = mz + 0.5 - z0;
-						k = (4.0 * x * vx) + (y * vy) + (z * vz);
-						c = (4.0 * x * x) + (y * y) + (z * z) - 0.04;
+						k = (16.0 * x * vx) + (y * vy) + (z * vz);
+						c = (16.0 * x * x) + (y * y) + (z * z) - 0.04;
 						D = k * k - a * c;
 						if (D < 0.0) {goto emi3;}
 						D = sqrt(D);
@@ -924,11 +924,38 @@ emi2:
 						conx = 5.0 * 4.0 * (cox - mx - 0.25);
 						cony = 5.0 * (coy - 0.5);
 						conz = 5.0 * (coz - 0.5 - mz);
+//fwprintf_s(debugFile, L"%f %f %f = %f\n", conx, cony, conz, conx * conx + cony * cony + conz * conz);
 						cot = t1;
 						tResult = t1; doThing = 2;
 //					}
-
 emi3:
+//					if (state == LEFT) {
+						a = (vx * vx * 4.0) + (vy * vy) + (vz * vz);
+						x = mx + 0.8 - x0;
+						y = 0.5 - y0;
+						z = mz + 0.5 - z0;
+						k = (4.0 * x * vx) + (y * vy) + (z * vz);
+						c = (4.0 * x * x) + (y * y) + (z * z) - 0.16;
+						D = k * k - a * c;
+						if (D < 0.0) {goto emi4;}
+						D = sqrt(D);
+						a = 1 / a;
+						t1 = (k - D) * a;
+						if (t1 < rayFirst) {t1 = (k + D) * a;}
+						if (t1 < rayFirst) {goto emi4;}
+						if (t1 > tResult) {goto emi4;}
+						t1 = t1 - 0.0001;
+						cox = x0 + vx * t1;
+						coy = y0 + vy * t1;
+						coz = z0 + vz * t1;
+						conx = 2.5 * 2.0 * (cox - mx - 0.8);
+						cony = 2.5 * (coy - 0.5);
+						conz = 2.5 * (coz - 0.5 - mz);
+//fwprintf_s(debugFile, L"%f %f %f = %f\n", conx, cony, conz, conx * conx + cony * cony + conz * conz);
+						cot = t1;
+						tResult = t1; doThing = 2;
+//					}
+emi4:
 					if (doThing == -1) {break;}
 					if (doThing == 0) {
 rayLast = cot;
