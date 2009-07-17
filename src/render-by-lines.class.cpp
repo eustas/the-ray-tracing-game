@@ -930,12 +930,12 @@ emi2:
 //					}
 emi3:
 //					if (state == LEFT) {
-						a = (vx * vx * 4.0) + (vy * vy) + (vz * vz);
-						x = mx + 0.8 - x0;
+						a = (vx * vx * 1.44) + (vy * vy) + (vz * vz);
+						x = mx + 0.9 - x0;
 						y = 0.5 - y0;
 						z = mz + 0.5 - z0;
-						k = (4.0 * x * vx) + (y * vy) + (z * vz);
-						c = (4.0 * x * x) + (y * y) + (z * z) - 0.16;
+						k = (1.44 * x * vx) + (y * vy) + (z * vz);
+						c = (1.44 * x * x) + (y * y) + (z * z) - 0.09;
 						D = k * k - a * c;
 						if (D < 0.0) {goto emi4;}
 						D = sqrt(D);
@@ -946,43 +946,65 @@ emi3:
 						if (t1 > tResult) {goto emi4;}
 						t1 = t1 - 0.0001;
 						cox = x0 + vx * t1;
+						if (cox > (mx + 1.0)) { goto emi4;}
 						coy = y0 + vy * t1;
 						coz = z0 + vz * t1;
-						conx = 2.5 * 2.0 * (cox - mx - 0.8);
-						cony = 2.5 * (coy - 0.5);
-						conz = 2.5 * (coz - 0.5 - mz);
+						conx = 3.333333333333333333 * 1.2 * (cox - mx - 0.9);
+						cony = 3.333333333333333333 * (coy - 0.5);
+						conz = 3.333333333333333333 * (coz - 0.5 - mz);
 //fwprintf_s(debugFile, L"%f %f %f = %f\n", conx, cony, conz, conx * conx + cony * cony + conz * conz);
 						cot = t1;
-						tResult = t1; doThing = 2;
+						tResult = t1; doThing = 3;
 //					}
 emi4:
+//					if (state == LEFT) {
+						if (vx == 0.0) {goto emi5;}
+						t1 = (mx + 1.0 - x0) / vx;
+						if (t1 < rayFirst) {goto emi5;}
+						if (t1 > tResult) {goto emi5;}
+						y = y0 + vy * t1 - 0.5;
+						z = z0 + vz * t1 - mz - 0.5;
+						t2 = (y * y) + (z * z);
+						if (t2 > CUT_EMI_R_2) {goto emi5;}
+						t1 = t1 - 0.0001;
+						cox = x0 + vx * t1;
+						coy = y0 + vy * t1;
+						coz = z0 + vz * t1;
+						conx = 1.0;
+						cony = 0.0;
+						conz = 0.0;
+						cot = t1;
+						tResult = t1; doThing = 4;
+//					}
+emi5:
+
 					if (doThing == -1) {break;}
-					if (doThing == 0) {
+					if ((doThing == 0)||(doThing == 2)||(doThing == 3)||(doThing == 4)) {
 rayLast = cot;
 						x = cox; y = coy; z = coz; nx = conx; ny = cony; nz = conz;
+						tmp = vx * nx + vy * ny + vz * nz; tmp = tmp + tmp;
+						rx = tmp * nx - vx;
+						ry = tmp * ny - vy;
+						rz = tmp * nz - vz;
 
 						mat = &(materials[MAT_DIF_CON]);
 						for (int i = 0; i < 3; i++) {
 							if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
-								intense = DIFFUSE(i) * colorFactor;
-								ADD_COLOR
+//								intense = DIFFUSE(i) * colorFactor;
+//								ADD_COLOR
+								intense = SPECULAR(i);
+								if (intense < 0.0) {
+//									intense = intense * intense;
+//									intense = intense * intense * colorFactor;
+									intense = -2.0 * intense * intense * intense * colorFactor;
+									ADD_COLOR
+								}
 							}
 						}
-						clr[0] += 0.25; clr[1] += 0.25; clr[2] += 0.25;
+//						clr[0] += 0.25; clr[1] += 0.25; clr[2] += 0.25;
+						clr[0] += 0.15; clr[1] += 0.25; clr[2] += 0.35;
 					} else if (doThing == 1) {
 						clr[2] += 1.0;
-					} else if (doThing == 2) {
-rayLast = cot;
-						x = cox; y = coy; z = coz; nx = conx; ny = cony; nz = conz;
-
-						mat = &(materials[MAT_DIF_CON]);
-						for (int i = 0; i < 3; i++) {
-							if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
-								intense = DIFFUSE(i) * colorFactor;
-								ADD_COLOR
-							}
-						}
-						clr[0] += 0.25; clr[1] += 0.25; clr[2] += 0.25;
 					}
 					RETURN_COLOR
 				break;
