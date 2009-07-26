@@ -4,13 +4,84 @@ class CLASS_NAME {
 	number const my_y0;
 	number const my_z0;
 
-	inline bool CanSee(const int light, number x0, number y0, number z0, bool &lensed, number &factor, number &lx, number &ly, number &lz) const {
+	bool Ferrari(number A, number B,number C,number D,number E,number tStart, number &result) {
+		if (A == 0.0) {return false; /* todo: cordano */}
+		number iA = 1.0 / A;
+		number iA2 = iA * iA;
+		number iA3 = iA * iA2;
+		number iA4 = iA2 * iA2;
+		number B2 = B * B;
+		number B3 = B * B2;
+		number B4 = B4* B2;
+		number alpha = (C * iA) - (0.375 * B2 * iA2);
+		number beta = (0.125 * B3 * iA3) - (0.5 * B * C * iA2) + (D * iA);
+		number gamma = (0.0625 * C * B2 * iA3) - (0.01171875 * B4 * iA4) - (0.25 * B * D * iA2) + (E * iA);
+		number D1, D2, tmp;
+		result = LAST_T;
+		number t;
+		if (beta == 0.0) {
+			D1 = (alpha * alpha) - (4.0 * gamma);
+			if (D1 < 0.0) {return false;}
+			D1 = sqrt(D1);
+			tmp = -B * iA;
+			D2 = 0.5 * (-alpha - D1);
+			if (D2 >= 0.0) {
+				D2 = sqrt(D2);
+				t = tmp - D2; if ((t > tStart)&&(t < result)) {result = t;}
+				t = tmp + D2; if ((t > tStart)&&(t < result)) {result = t;}
+			}
+			D2 = 0.5 * (-alpha - D1);
+			if (D2 >= 0.0) {
+				D2 = sqrt(D2);
+				t = tmp - D2; if ((t > tStart)&&(t < result)) {result = t;}
+				t = tmp + D2; if ((t > tStart)&&(t < result)) {result = t;}
+			}
+			return (result < LAST_T);
+		}
+		number alpha2 = alpha * alpha;
+		number P = (-0.083333333333333333333333333333333 * alpha2) - gamma;
+		number Q = (0.33333333333333333333333333333333 * alpha * gamma)-(0.0092592592592592592592592592592593 * alpha2 * alpha) - (0.125 * beta * beta);
+		D1 = (0.25 * Q * Q) + (0.037037037037037037037037037037037 * P * P * P);
+		if (D1 < 0.0) {return false;}
+		number R = sqrt(D1) - (0.5 * Q);
+		number U, y;
+		if (R == 0.0) {
+			U = -pow(Q, 0.33333333333333333333333333333333);
+			y = U - (0.83333333333333333333333333333333 * alpha);
+		} else {
+			U = pow(R, 0.33333333333333333333333333333333);
+			y = U - (0.83333333333333333333333333333333 * alpha) - ((0.33333333333333333333333333333333 * P) / U);
+		}
+		number W = alpha + (2.0 * y);
+		if (W <= 0.0) {return false;}
+		W = sqrt(W);
+		number iW = 1 / W;
+		number D0 = -(3.0 * alpha) - (2.0 * y);
+		number D4 = 2.0 * beta * iW;
+		tmp = -0.25 * B * iA;
+		D1 = D0 - D4;
+		if (D1 > 0.0) {
+			D1 = sqrt(D1);
+			t = tmp + (0.5 * (W - D1)); if ((t > tStart)&&(t < result)) {result = t;}
+			t = tmp + (0.5 * (W + D1)); if ((t > tStart)&&(t < result)) {result = t;}
+		}
+		D1 = D0 + D4;
+		if (D1 > 0.0) {
+			D1 = sqrt(D1);
+			t = tmp + (0.5 * (-W - D1)); if ((t > tStart)&&(t < result)) {result = t;}
+			t = tmp + (0.5 * (-W + D1)); if ((t > tStart)&&(t < result)) {result = t;}
+		}
+		return (result < LAST_T);
+	}
+
+	bool CanSee(const int light, number x0, number y0, number z0, bool &lensed, number &factor, number &lx, number &ly, number &lz) const {
 		factor = 1.0;
 		lensed = false;
 		number vx = lights[light].x;
 		number vy = lights[light].y;
 		number vz = lights[light].z;
 		number wx,wy,wz;
+		number sx,sy,sz, coneC,econeA,einvConeA,a,c,cox;
 restart:
 		number coneA = (vx * vx) + (vz * vz) - (vy * vy * INV_64_CONE_H_2);
 		number invConeA = 1 / coneA;
@@ -53,6 +124,7 @@ restart:
 		number tStart, tEnd;
 		bool boundsFloor;
 		CalcTimeBox(x0, y0, z0, vx, vy, vz, tStart, tEnd, boundsFloor);
+		number rayFirst = tStart;
 
 		int idx = mx + 15 * mz;
 		number nx, ny, nz;
@@ -71,6 +143,13 @@ restart:
 
 				case RANDOM:
 					if (((int)(((vx * vy) + (vy * vz) + (vz * vx) + x0 + y0 + z0) * (65536 + subFrame)) & 0xFF) > 0x80) {return false;}
+					break;
+
+
+				case EMITTER:
+					if (state == 0) {
+#include"emi_l_c.cpp"
+					}
 					break;
 
 
@@ -240,7 +319,7 @@ mirrorPlane:
 		return true;
 	}
 
-	inline bool TestInside(const number x0, const number y0, const number z0, int mx, int mz) const {
+	bool TestInside(const number x0, const number y0, const number z0, int mx, int mz) const {
 		if (y0 > 1.0) { return false;}
 		if ((x0 < 0.0) || (x0 > 15.0) || (z0 < 0.0) || (z0 > 9.0)) {return false;}
 		number dx, dy, dz, r;
@@ -261,6 +340,8 @@ mirrorPlane:
 				return true;
 
 			case QUANT:
+			case STAR:
+			case PORTAL:
 				dx = x0 - mx - 0.5;
 				dy = y0 - 0.5;
 				dz = z0 - mz - 0.5;
@@ -271,7 +352,7 @@ mirrorPlane:
 		return false;
 	}
 
-	inline bool TestCaps(const number x0, const number y0, const number z0, const number vx,const number vy,const number vz, const int mx, const int mz, number &nx, number &ny, number &nz, number tStart) const {
+	bool TestCaps(const number x0, const number y0, const number z0, const number vx,const number vy,const number vz, const int mx, const int mz, number &nx, number &ny, number &nz, number tStart) const {
 		if (y0 < 1.0) {return false;}
 		double tmp = y0 + vy * tStart;
 		if (tmp < 0.9999) { return false;}
@@ -297,7 +378,7 @@ mirrorPlane:
 		return false;
 	}
 
-	inline bool IntersectBlock(const number x0, const number y0, const number z0, const number vx,const number vy,const number vz, char state, const int mx, const int mz, number &nx, number &ny, number &nz,number &tIntersect) const {
+	bool IntersectBlock(const number x0, const number y0, const number z0, const number vx,const number vy,const number vz, char state, const int mx, const int mz, number &nx, number &ny, number &nz,number &tIntersect) const {
 		number t = LAST_T;
 		number tmp;
 		number tStart = tIntersect;
@@ -365,7 +446,7 @@ mirrorPlane:
 		return hasr;
 	}
 
-	inline bool CalcTimeBox(const number x0, const number y0, const number z0, const number vx, const number vy, const number vz, number &tStart, number &tEnd, bool &boundsFloor) const {
+	bool CalcTimeBox(const number x0, const number y0, const number z0, const number vx, const number vy, const number vz, number &tStart, number &tEnd, bool &boundsFloor) const {
 		tStart = 0.0;
 		tEnd = LAST_T;
 		// XBOX
@@ -422,7 +503,7 @@ mirrorPlane:
 		return true;
 	}
 
-	inline void CalcPoint(const int cx, const int cy, number x0, number y0, number z0, number* clr) const {
+	void CalcPoint(const int cx, const int cy, number x0, number y0, number z0, number* clr) const {
 #ifdef PROTECT
 	try {
 #endif
@@ -849,133 +930,15 @@ fullReflect:
 				case EMITTER:
 					tResult = LAST_T;
 					doThing = -1;
-//					if (state == LEFT) {
-						sx = mx - 0.1 - x0;
-						sy = 0.5 - y0;
-						sz = (0.5 + mz) - z0;
-						k = (sy * vy) + (sz * vz) - (sx * vx * E_INV_16_CONE_H_2);
-						coneC = (sy * sy) + (sz * sz) - (sx * sx * E_INV_16_CONE_H_2);
-						econeA = (vy * vy) + (vz * vz) - (vx * vx * E_INV_16_CONE_H_2);
-						D = k * k - econeA * coneC;
-						einvConeA = 1 / econeA;
-						if (D <= 0.0) { goto emi1; }
-						D = sqrt(D);
-						if (econeA > 0.0) {
-							t1 = (k - D) * einvConeA;
-							t2 = (k + D) * einvConeA;
-						} else {
-							t2 = (k - D) * einvConeA;
-							t1 = (k + D) * einvConeA;
-						}
-						x = (mx + 1.0 - 0.1) - (x0 + (vx * t1));
-						if (x > E_CONE_H - 0.1) {
-							x = (mx + 1.0 - 0.1) - (x0 + (vx * t2));
-							if (x > E_CONE_H - 0.1) { goto emi1; }
-							t1 = t2;
-						}
-						if (x < 0.1) { goto emi1; }
-						if (t1 < rayFirst) {goto emi1;}
-						tmp = E_CONE_YR_P - (E_CONE_YR_Y * x); // tmp == r
-						if (tmp <= 0.0) {goto emi1;}
-						tmp = 1 / tmp;
-						cot = t1;
-						t2 = t1 - 0.00001;
-						x = x0 + vx * t2;
-						y = y0 + vy * t2;
-						z = z0 + vz * t2;
-						nx = -E_CONE_DY;
-						ny =  (y - 0.5) * tmp;
-						nz = (z - mz - 0.5) * tmp;
-						tResult = t1; doThing = 0; cox = x; coy = y; coz = z; conx= nx; cony = ny; conz = nz;
-//					}
-emi1:
-//					if (state == LEFT) {
-						if (vx == 0.0) {goto emi2;}
-						t1 = (mx - x0) / vx;
-						if (t1 < rayFirst) {goto emi2;}
-						if (t1 > tResult) {goto emi2;}
-						y = y0 + vy * t1 - 0.5;
-						z = z0 + vz * t1 - mz - 0.5;
-						t2 = (y * y) + (z * z);
-						if (t2 > RAY_R_2) {goto emi2;}
-						cot = t1;
-						tResult = t1; doThing = 1;
-//					}
-emi2:
-//					if (state == LEFT) {
-						a = (vx * vx * 16.0) + (vy * vy) + (vz * vz);
-						x = mx + 0.25 - x0;
-						y = 0.5 - y0;
-						z = mz + 0.5 - z0;
-						k = (16.0 * x * vx) + (y * vy) + (z * vz);
-						c = (16.0 * x * x) + (y * y) + (z * z) - 0.04;
-						D = k * k - a * c;
-						if (D < 0.0) {goto emi3;}
-						D = sqrt(D);
-						a = 1 / a;
-						t1 = (k - D) * a;
-						if (t1 < rayFirst) {t1 = (k + D) * a;}
-						if (t1 < rayFirst) {goto emi3;}
-						if (t1 > tResult) {goto emi3;}
-						t1 = t1 - 0.0001;
-						cox = x0 + vx * t1;
-						coy = y0 + vy * t1;
-						coz = z0 + vz * t1;
-						conx = 5.0 * 4.0 * (cox - mx - 0.25);
-						cony = 5.0 * (coy - 0.5);
-						conz = 5.0 * (coz - 0.5 - mz);
-//fwprintf_s(debugFile, L"%f %f %f = %f\n", conx, cony, conz, conx * conx + cony * cony + conz * conz);
-						cot = t1;
-						tResult = t1; doThing = 2;
-//					}
-emi3:
-//					if (state == LEFT) {
-						a = (vx * vx * 1.44) + (vy * vy) + (vz * vz);
-						x = mx + 0.9 - x0;
-						y = 0.5 - y0;
-						z = mz + 0.5 - z0;
-						k = (1.44 * x * vx) + (y * vy) + (z * vz);
-						c = (1.44 * x * x) + (y * y) + (z * z) - 0.09;
-						D = k * k - a * c;
-						if (D < 0.0) {goto emi4;}
-						D = sqrt(D);
-						a = 1 / a;
-						t1 = (k - D) * a;
-						if (t1 < rayFirst) {t1 = (k + D) * a;}
-						if (t1 < rayFirst) {goto emi4;}
-						if (t1 > tResult) {goto emi4;}
-						t1 = t1 - 0.0001;
-						cox = x0 + vx * t1;
-						if (cox > (mx + 1.0)) { goto emi4;}
-						coy = y0 + vy * t1;
-						coz = z0 + vz * t1;
-						conx = 3.333333333333333333 * 1.2 * (cox - mx - 0.9);
-						cony = 3.333333333333333333 * (coy - 0.5);
-						conz = 3.333333333333333333 * (coz - 0.5 - mz);
-//fwprintf_s(debugFile, L"%f %f %f = %f\n", conx, cony, conz, conx * conx + cony * cony + conz * conz);
-						cot = t1;
-						tResult = t1; doThing = 3;
-//					}
-emi4:
-//					if (state == LEFT) {
-						if (vx == 0.0) {goto emi5;}
-						t1 = (mx + 1.0 - x0) / vx;
-						if (t1 < rayFirst) {goto emi5;}
-						if (t1 > tResult) {goto emi5;}
-						y = y0 + vy * t1 - 0.5;
-						z = z0 + vz * t1 - mz - 0.5;
-						t2 = (y * y) + (z * z);
-						if (t2 > CUT_EMI_R_2) {goto emi5;}
-						t1 = t1 - 0.0001;
-						cox = x0 + vx * t1;
-						coy = y0 + vy * t1;
-						coz = z0 + vz * t1;
-						conx = 1.0;
-						cony = 0.0;
-						conz = 0.0;
-						cot = t1;
-						tResult = t1; doThing = 4;
-//					}
+					if (state == 0) {
+#include<emi_l_p.cpp>
+					} else if (state == 1) {
+#include<emi_u_p.cpp>
+					} else if (state == 2) {
+#include<emi_r_p.cpp>
+					} else if (state == 3) {
+#include<emi_d_p.cpp>
+					}
 emi5:
 
 					if (doThing == -1) {break;}
