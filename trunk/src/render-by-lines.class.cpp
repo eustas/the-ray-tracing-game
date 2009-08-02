@@ -4,15 +4,15 @@ class CLASS_NAME {
 	number const my_y0;
 	number const my_z0;
 
-	bool Ferrari(number A, number B,number C,number D,number E,number tStart, number &result) {
-		if (A == 0.0) {return false; /* todo: cordano */}
+	bool Ferrari(number A, number B,number C,number D,number E,number tStart, number tEnd, number &result) const {
+		if (A == 0.0) {fwprintf_s(debugFile, L"A\n"); return false; /* todo: cordano */}
 		number iA = 1.0 / A;
 		number iA2 = iA * iA;
 		number iA3 = iA * iA2;
 		number iA4 = iA2 * iA2;
 		number B2 = B * B;
 		number B3 = B * B2;
-		number B4 = B4* B2;
+		number B4 = B2* B2;
 		number alpha = (C * iA) - (0.375 * B2 * iA2);
 		number beta = (0.125 * B3 * iA3) - (0.5 * B * C * iA2) + (D * iA);
 		number gamma = (0.0625 * C * B2 * iA3) - (0.01171875 * B4 * iA4) - (0.25 * B * D * iA2) + (E * iA);
@@ -20,21 +20,22 @@ class CLASS_NAME {
 		result = LAST_T;
 		number t;
 		if (beta == 0.0) {
+			fwprintf_s(debugFile, L"beta\n");
 			D1 = (alpha * alpha) - (4.0 * gamma);
-			if (D1 < 0.0) {return false;}
+			if (D1 < 0.0) {fwprintf_s(debugFile, L"B\n");return false;}
 			D1 = sqrt(D1);
 			tmp = -B * iA;
 			D2 = 0.5 * (-alpha - D1);
 			if (D2 >= 0.0) {
 				D2 = sqrt(D2);
-				t = tmp - D2; if ((t > tStart)&&(t < result)) {result = t;}
-				t = tmp + D2; if ((t > tStart)&&(t < result)) {result = t;}
+				t = tmp - D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
+				t = tmp + D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
 			}
 			D2 = 0.5 * (-alpha - D1);
 			if (D2 >= 0.0) {
 				D2 = sqrt(D2);
-				t = tmp - D2; if ((t > tStart)&&(t < result)) {result = t;}
-				t = tmp + D2; if ((t > tStart)&&(t < result)) {result = t;}
+				t = tmp - D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
+				t = tmp + D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
 			}
 			return (result < LAST_T);
 		}
@@ -42,34 +43,36 @@ class CLASS_NAME {
 		number P = (-0.083333333333333333333333333333333 * alpha2) - gamma;
 		number Q = (0.33333333333333333333333333333333 * alpha * gamma)-(0.0092592592592592592592592592592593 * alpha2 * alpha) - (0.125 * beta * beta);
 		D1 = (0.25 * Q * Q) + (0.037037037037037037037037037037037 * P * P * P);
-		if (D1 < 0.0) {return false;}
-		number R = sqrt(D1) - (0.5 * Q);
-		number U, y;
+		std::complex <number> R0 = (0.5 * Q);
+		std::complex <number> R1 = (D1);
+		std::complex <number> R = std::sqrt(R1) - R0;
+		std::complex <number> U;
+		std::complex <number> y;
 		if (R == 0.0) {
-			U = -pow(Q, 0.33333333333333333333333333333333);
+			U = std::pow(-Q, 0.33333333333333333333333333333333);
 			y = U - (0.83333333333333333333333333333333 * alpha);
 		} else {
-			U = pow(R, 0.33333333333333333333333333333333);
+			U = std::pow(R, 0.33333333333333333333333333333333);
 			y = U - (0.83333333333333333333333333333333 * alpha) - ((0.33333333333333333333333333333333 * P) / U);
 		}
-		number W = alpha + (2.0 * y);
-		if (W <= 0.0) {return false;}
+		number W = alpha + (2.0 * std::real(y));
+		if (W <= 0.0) {fwprintf_s(debugFile, L"D %f| %f %f %f %f %f\n",W,A,B,C,D,E);return false;}
 		W = sqrt(W);
 		number iW = 1 / W;
-		number D0 = -(3.0 * alpha) - (2.0 * y);
+		number D0 = -(3.0 * alpha) - (2.0 * std::real(y));
 		number D4 = 2.0 * beta * iW;
 		tmp = -0.25 * B * iA;
 		D1 = D0 - D4;
 		if (D1 > 0.0) {
 			D1 = sqrt(D1);
-			t = tmp + (0.5 * (W - D1)); if ((t > tStart)&&(t < result)) {result = t;}
-			t = tmp + (0.5 * (W + D1)); if ((t > tStart)&&(t < result)) {result = t;}
+			t = tmp + (0.5 * (W - D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
+			t = tmp + (0.5 * (W + D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
 		}
 		D1 = D0 + D4;
 		if (D1 > 0.0) {
 			D1 = sqrt(D1);
-			t = tmp + (0.5 * (-W - D1)); if ((t > tStart)&&(t < result)) {result = t;}
-			t = tmp + (0.5 * (-W + D1)); if ((t > tStart)&&(t < result)) {result = t;}
+			t = tmp + (0.5 * (-W - D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
+			t = tmp + (0.5 * (-W + D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
 		}
 		return (result < LAST_T);
 	}
@@ -520,9 +523,9 @@ mirrorPlane:
 		number invConeA = 1 / coneA;
 		bool cAp = coneA > 0.0;
 		number sx,sy,sz,k,coneC, econeA, einvConeA;
-		number D, t1, t2, t3, t4, tmp, temp;
+		number D, t0, t1, t2, t3, t4, tmp, temp;
 		number nx,ny,nz;
-		number a,b,c;
+		number a,b,c,e,f,g;
 		number tResult;
 		DWORD result;
 		number rx,ry,rz;
@@ -700,9 +703,17 @@ rayLast = t1;
 						k = (dx * vx) + (dy * vy) + (dz * vz);
 						D = (k * k) - w;
 					}
-					if (D <= 0.0) { break; }
+					if (D <= 0.0) { goto portalTorus; }
 					t1 = k - sqrt(D);
-					if (t1 < tStart) {t1 = k + sqrt(D); if (t1 > tStart) {RETURN_COLOR} break;}
+					if (t1 < tStart) {
+						t1 = k + sqrt(D);
+						if (t1 > tStart) {
+							// is that right?
+							RETURN_COLOR
+						}
+						// may be break?
+						goto portalTorus;
+					}
 					precalcActive = false;
 					deepness++;
 					if (deepness > 16) {
@@ -734,6 +745,28 @@ rayLast = t1;
 					if (vx > 0.0) {tNextX = (mx + 1.0 - x0) / vx;} else if (vx < 0.0) {tNextX = (mx - x0) / vx;}
 					if (vz > 0.0) {tNextZ = (mz + 1.0 - z0) / vz;} else if (vz < 0.0) {tNextZ = (mz - z0) / vz;}
 					idx = mx + 15 * mz;
+					break;
+portalTorus:
+					dx = x0 - mx - 0.5;
+					dy = y0;
+					dz = z0 - mz - 0.5;
+					a = 2.0 * ((vx * dx) + (vz * dz)); // r: t
+					b = a + (2.0 * vy * dy); // l^1 : t
+					c = (dx * dx) + (dz * dz); // r: 1
+					f = c + (dy * dy) + 0.15; // l^1: 1
+					e = (vx * vx) + (vz * vz); // r: t^2
+					t4 = 1.0;
+					t3 = 2.0 * b;
+					t2 = (2.0 * f) + (b * b) - (0.64 * e);
+					t1 = (2.0 * b * f) - (0.64 * a);
+					t0 = (f * f) - (0.64 * c);
+					if (Ferrari(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {
+						//fwprintf_s(debugFile, L"t=%f\n", t0 + tmp * ( t1 + tmp * (t2 + tmp * (t3 + tmp * t4))));
+						clr[0] += (rand() & 0x3F) / 255.0;
+						clr[1] += (rand() & 0x3F) / 255.0;
+						clr[2] += (rand() & 0x3F) / 255.0;
+						RETURN_COLOR
+					}
 					break;
 
 				case BLOCK:

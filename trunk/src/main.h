@@ -2,7 +2,7 @@
 #define MAIN_H
 
 #include "files.h"
-
+#include<complex>
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
