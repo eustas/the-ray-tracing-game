@@ -76,15 +76,20 @@
 
 VEC4D lights[3];
 VEC4D lightsClr[3];
-VEC4D materials[5];
+
 
 #define MAT_DIF_DEF 0
 #define MAT_DIF_BLO 1
 #define MAT_DIF_FLO 2
 #define MAT_DIF_PNT 3
 #define MAT_SPE_PNT 4
+#define MAT_DIF_TOR 5
+#define MAT_SPE_TOR 6
 
 #define MAT_DIF_CON 2
+#define MAT_LAST 6
+VEC4D materials[MAT_LAST + 1];
+
 
 int bFlags[128];
 #define VLD 0x000001
@@ -649,6 +654,9 @@ void InitRayTracer() {
 	mat = &(materials[MAT_DIF_PNT]); mat->x = 0.75; mat->y = 0.75; mat->z = 0.75;
 	//mat = &(materials[MAT_SPE_PNT]); mat->x = 0.50; mat->y = 0.50; mat->z = 0.50;
 	mat = &(materials[MAT_SPE_PNT]); mat->x = 0.75; mat->y = 0.75; mat->z = 0.75;
+
+	mat = &(materials[MAT_DIF_TOR]); mat->x = 0.75; mat->y = 0.25; mat->z = 0.50;
+	mat = &(materials[MAT_SPE_TOR]); mat->x = 0.50; mat->y = 0.25; mat->z = 0.75;
 
 	memset(bFlags, 0, 128 * sizeof(int));
 	bFlags[FULL      ] = VL  | VR  | HD  | HU ;
