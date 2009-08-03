@@ -89,8 +89,8 @@ restart:
 		number coneA = (vx * vx) + (vz * vz) - (vy * vy * INV_64_CONE_H_2);
 		number invConeA = 1 / coneA;
 		bool cAp = coneA > 0.0;
-		number dx, dy, dz, w, k, D, t1, t2, tmp;
-		number x,y,z, t3;
+		number dx, dy, dz, w, k, D, t0,t1, t2, t3, t4, tmp;
+		number x,y,z, b,f,e;
 		int mx = (int)x0;
 		int mz = (int)z0;
 		int d;
@@ -163,11 +163,14 @@ restart:
 					w = (dx * dx) + (dy * dy) + (dz * dz) - (PORTAL_R * PORTAL_R);
 					k = (dx * vx) + (dy * vy) + (dz * vz);
 					D = (k * k) - w;
-					if (D <= 0.0) { break; }
+					if (D <= 0.0) { goto portalTorus; }
 					t1 = k - sqrt(D);
-					if (t1 < tStart) {t1 = k + sqrt(D); if (t1 > tStart) {return false;} break;}
+					if (t1 < tStart) {
+						t1 = k + sqrt(D);
+						if (t1 > tStart) {return false;}
+						goto portalTorus;}
 					deepness++;
-					if (deepness > 3) {return false;}
+					if (deepness > 5) {return false;}
 					t2 = t1 - 0.00001;
 					x = x0 + (vx * t2) - mx;
 					y = y0 + (vy * t2);
@@ -191,6 +194,23 @@ restart:
 					if (vz > 0.0) {tNextZ = (mz + 1.0 - z0) / vz;} else if (vz < 0.0) {tNextZ = (mz - z0) / vz;}
 					idx = mx + 15 * mz;
 					break;
+portalTorus:
+					dx = x0 - mx - 0.5;
+					dy = y0;
+					dz = z0 - mz - 0.5;
+					a = 2.0 * ((vx * dx) + (vz * dz)); // r: t
+					b = a + (2.0 * vy * dy); // l^1 : t
+					c = (dx * dx) + (dz * dz); // r: 1
+					f = c + (dy * dy) + 0.15; // l^1: 1
+					e = (vx * vx) + (vz * vz); // r: t^2
+					t4 = 1.0;
+					t3 = 2.0 * b;
+					t2 = (2.0 * f) + (b * b) - (0.64 * e);
+					t1 = (2.0 * b * f) - (0.64 * a);
+					t0 = (f * f) - (0.64 * c);
+					if (!Ferrari(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {break;}
+					return false;
+
 
 				case BLOCK:
 				case MBLOCK:
