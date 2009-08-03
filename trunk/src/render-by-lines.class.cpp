@@ -760,13 +760,43 @@ portalTorus:
 					t2 = (2.0 * f) + (b * b) - (0.64 * e);
 					t1 = (2.0 * b * f) - (0.64 * a);
 					t0 = (f * f) - (0.64 * c);
-					if (Ferrari(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {
-						//fwprintf_s(debugFile, L"t=%f\n", t0 + tmp * ( t1 + tmp * (t2 + tmp * (t3 + tmp * t4))));
-						clr[0] += (rand() & 0x3F) / 255.0;
-						clr[1] += (rand() & 0x3F) / 255.0;
-						clr[2] += (rand() & 0x3F) / 255.0;
-						RETURN_COLOR
+					if (!Ferrari(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {break;}
+					t1 = tmp;
+					t2 = t1 - 0.000001;
+					x = x0 + (vx * t2);
+					y = y0 + (vy * t2);
+					z = z0 + (vz * t2);
+					dx = x - mx - 0.5;
+					dy = y;
+					dz = z - mz - 0.5;
+					f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.17);
+					nx = dx * f;
+					ny = dy * (f + 1.28);
+					nz = dz * f;
+					e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+					nx = nx * e;
+					ny = ny * e;
+					nz = nz * e;
+					tmp = vx * nx + vy * ny + vz * nz; tmp = tmp + tmp;
+					rx = tmp * nx - vx;
+					ry = tmp * ny - vy;
+					rz = tmp * nz - vz;
+					for (int i = 0; i < 3; i++) {
+						if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
+							mat = &(materials[MAT_DIF_TOR]);
+							intense = DIFFUSE(i) * colorFactor;
+							ADD_COLOR
+							intense = SPECULAR(i);
+							if (intense < 0.0) {
+								intense = intense * intense;
+								intense = intense * intense * colorFactor;
+								mat = &(materials[MAT_SPE_TOR]);
+								ADD_COLOR
+							}
+						}
 					}
+					RETURN_COLOR
+
 					break;
 
 				case BLOCK:
