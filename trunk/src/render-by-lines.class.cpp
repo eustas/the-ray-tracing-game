@@ -5,7 +5,7 @@ class CLASS_NAME {
 	number const my_z0;
 
 	bool Ferrari(number A, number B,number C,number D,number E,number tStart, number tEnd, number &result) const {
-		if (A == 0.0) {fwprintf_s(debugFile, L"A\n"); return false; /* todo: cordano */}
+		if (A == 0.0) {return false; /* todo: cordano */}
 		number iA = 1.0 / A;
 		number iA2 = iA * iA;
 		number iA3 = iA * iA2;
@@ -19,19 +19,22 @@ class CLASS_NAME {
 		number D1, D2, tmp;
 		result = LAST_T;
 		number t;
-		if (beta == 0.0) {
-			fwprintf_s(debugFile, L"beta\n");
+		if (abs(beta)<0.000000001) {
+//		if (beta == 0.0) {
 			D1 = (alpha * alpha) - (4.0 * gamma);
-			if (D1 < 0.0) {fwprintf_s(debugFile, L"B\n");return false;}
+			if (abs(D1)<0.000000001) {D1=0.0;}
+			if (D1 < 0.0) {return false;}
 			D1 = sqrt(D1);
 			tmp = -B * iA;
 			D2 = 0.5 * (-alpha - D1);
+			if (abs(D2) < 0.000000001) {D2=0.0;}
 			if (D2 >= 0.0) {
 				D2 = sqrt(D2);
 				t = tmp - D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
 				t = tmp + D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
 			}
 			D2 = 0.5 * (-alpha - D1);
+			if (abs(D2) < 0.000000001) {D2=0.0;}
 			if (D2 >= 0.0) {
 				D2 = sqrt(D2);
 				t = tmp - D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
@@ -40,40 +43,46 @@ class CLASS_NAME {
 			return (result < LAST_T);
 		}
 		number alpha2 = alpha * alpha;
-		number P = (-0.083333333333333333333333333333333 * alpha2) - gamma;
-		number Q = (0.33333333333333333333333333333333 * alpha * gamma)-(0.0092592592592592592592592592592593 * alpha2 * alpha) - (0.125 * beta * beta);
-		D1 = (0.25 * Q * Q) + (0.037037037037037037037037037037037 * P * P * P);
+		number P = (-0.0833333333333333333333333333333333333 * alpha2) - gamma;
+		number Q = (0.333333333333333333333333333333333333 * alpha * gamma)-(0.00925925925925925925925925925925932593 * alpha2 * alpha) - (0.125 * beta * beta);
+		D1 = (0.25 * Q * Q) + (0.037037037037037037037037037037037037 * P * P * P);
 		std::complex <number> R0 = (0.5 * Q);
 		std::complex <number> R1 = (D1);
-		std::complex <number> R = std::sqrt(R1) - R0;
 		std::complex <number> U;
 		std::complex <number> y;
-		if (R == 0.0) {
-			U = std::pow(-Q, 0.33333333333333333333333333333333);
-			y = U - (0.83333333333333333333333333333333 * alpha);
+		bool inv = false;
+		std::complex <number> R = std::sqrt(R1) - R0;
+inve:
+		if (std::abs(R) < 0.000000001) {
+			U = std::pow(-Q, 0.333333333333333333333333333333333333);
+			y = U - (0.833333333333333333333333333333333333 * alpha);
 		} else {
-			U = std::pow(R, 0.33333333333333333333333333333333);
-			y = U - (0.83333333333333333333333333333333 * alpha) - ((0.33333333333333333333333333333333 * P) / U);
+			U = std::pow(R, 0.333333333333333333333333333333333333);
+			y = U - (0.833333333333333333333333333333333333 * alpha) - ((0.333333333333333333333333333333333333 * P) / U);
 		}
 		number W = alpha + (2.0 * std::real(y));
-		if (W <= 0.0) {fwprintf_s(debugFile, L"D %f| %f %f %f %f %f\n",W,A,B,C,D,E);return false;}
+		if (W < 0.0) {if (inv){goto fin;} else {inv=true; R = std::sqrt(R1) - R0; goto inve;}/*fwprintf_s(debugFile, L"D %f| %f %f %f %f %f\n",W,A,B,C,D,E);return false;*/}
 		W = sqrt(W);
 		number iW = 1 / W;
 		number D0 = -(3.0 * alpha) - (2.0 * std::real(y));
 		number D4 = 2.0 * beta * iW;
 		tmp = -0.25 * B * iA;
 		D1 = D0 - D4;
-		if (D1 > 0.0) {
+//		if ((D1<0.0)&&(D1>-0.0000000000000001)){D1=0.0;}
+		if (D1 >= 0.0) {
 			D1 = sqrt(D1);
 			t = tmp + (0.5 * (W - D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
 			t = tmp + (0.5 * (W + D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
 		}
 		D1 = D0 + D4;
-		if (D1 > 0.0) {
+//		if ((D1<0.0)&&(D1>-0.0000000000000001)){D1=0.0;}
+		if (D1 >= 0.0) {
 			D1 = sqrt(D1);
 			t = tmp + (0.5 * (-W - D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
 			t = tmp + (0.5 * (-W + D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
 		}
+		if (!inv) {inv=true; R = std::sqrt(R1) - R0; goto inve;}
+fin:
 		return (result < LAST_T);
 	}
 
@@ -89,7 +98,7 @@ restart:
 		number coneA = (vx * vx) + (vz * vz) - (vy * vy * INV_64_CONE_H_2);
 		number invConeA = 1 / coneA;
 		bool cAp = coneA > 0.0;
-		number dx, dy, dz, w, k, D, t0,t1, t2, t3, t4, tmp;
+		number dx, dy, dz, w, k, D, t0,t1, t2, t3, t4, tmp,temp;
 		number x,y,z, b,f,e;
 		int mx = (int)x0;
 		int mz = (int)z0;
@@ -157,18 +166,42 @@ restart:
 
 
 				case PORTAL:
+					temp = LAST_T;
 					dx = mx + 0.5 - x0;
 					dy =      0.5 - y0;
 					dz = mz + 0.5 - z0;
 					w = (dx * dx) + (dy * dy) + (dz * dz) - (PORTAL_R * PORTAL_R);
 					k = (dx * vx) + (dy * vy) + (dz * vz);
 					D = (k * k) - w;
-					if (D <= 0.0) { goto portalTorus; }
+					if (D <= 0.0) { goto portalTorusC; }
 					t1 = k - sqrt(D);
 					if (t1 < tStart) {
 						t1 = k + sqrt(D);
 						if (t1 > tStart) {return false;}
-						goto portalTorus;}
+						goto portalTorusC;
+					}
+					temp = t1;
+portalTorusC:
+					dx = x0 - mx - 0.5;
+					dy = y0 - 0.1;
+					dz = z0 - mz - 0.5;
+					a = 2.0 * ((vx * dx) + (vz * dz)); // r: t
+					b = a + (2.0 * vy * dy); // l^1 : t
+					c = (dx * dx) + (dz * dz); // r: 1
+					f = c + (dy * dy) + 0.15; // l^1: 1
+					e = (vx * vx) + (vz * vz); // r: t^2
+					t4 = 1.0;
+					t3 = 2.0 * b;
+					t2 = (2.0 * f) + (b * b) - (0.64 * e);
+					t1 = (2.0 * b * f) - (0.64 * a);
+					t0 = (f * f) - (0.64 * c);
+					if (!Ferrari(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {
+						if (temp<LAST_T) {goto portalPortal;}
+						break;
+					}
+					if (temp<tmp) {goto portalPortal;}
+					return false;
+portalPortal:
 					deepness++;
 					if (deepness > 5) {return false;}
 					t2 = t1 - 0.00001;
@@ -194,22 +227,7 @@ restart:
 					if (vz > 0.0) {tNextZ = (mz + 1.0 - z0) / vz;} else if (vz < 0.0) {tNextZ = (mz - z0) / vz;}
 					idx = mx + 15 * mz;
 					break;
-portalTorus:
-					dx = x0 - mx - 0.5;
-					dy = y0;
-					dz = z0 - mz - 0.5;
-					a = 2.0 * ((vx * dx) + (vz * dz)); // r: t
-					b = a + (2.0 * vy * dy); // l^1 : t
-					c = (dx * dx) + (dz * dz); // r: 1
-					f = c + (dy * dy) + 0.15; // l^1: 1
-					e = (vx * vx) + (vz * vz); // r: t^2
-					t4 = 1.0;
-					t3 = 2.0 * b;
-					t2 = (2.0 * f) + (b * b) - (0.64 * e);
-					t1 = (2.0 * b * f) - (0.64 * a);
-					t0 = (f * f) - (0.64 * c);
-					if (!Ferrari(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {break;}
-					return false;
+
 
 
 				case BLOCK:
@@ -712,6 +730,7 @@ rayLast = t1;
 					RETURN_COLOR
 
 				case PORTAL:
+					temp = LAST_T;
 					if (precalcActive) {
 						k = (tgt->x * vx) + (tgt->y * vy) + (tgt->z * vz);
 						D = (k * k) - tgt->w;
@@ -723,7 +742,7 @@ rayLast = t1;
 						k = (dx * vx) + (dy * vy) + (dz * vz);
 						D = (k * k) - w;
 					}
-					if (D <= 0.0) { goto portalTorus; }
+					if (D <= 0.0) { goto portalTorusC; }
 					t1 = k - sqrt(D);
 					if (t1 < tStart) {
 						t1 = k + sqrt(D);
@@ -732,8 +751,67 @@ rayLast = t1;
 							RETURN_COLOR
 						}
 						// may be break?
-						goto portalTorus;
+						goto portalTorusC;
 					}
+					temp = t1;
+portalTorusC:
+					dx = x0 - mx - 0.5;
+					dy = y0 - 0.1;
+					dz = z0 - mz - 0.5;
+					a = 2.0 * ((vx * dx) + (vz * dz)); // r: t
+					b = a + (2.0 * vy * dy); // l^1 : t
+					c = (dx * dx) + (dz * dz); // r: 1
+					f = c + (dy * dy) + 0.15; // l^1: 1
+					e = (vx * vx) + (vz * vz); // r: t^2
+					t4 = 1.0;
+					t3 = 2.0 * b;
+					t2 = (2.0 * f) + (b * b) - (0.64 * e);
+					t1 = (2.0 * b * f) - (0.64 * a);
+					t0 = (f * f) - (0.64 * c);
+					if (!Ferrari(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {
+						if (temp < LAST_T) {goto portalPortal;}
+						break;
+					}
+					if (temp < tmp) {goto portalPortal;}
+//portalTorus
+					t1 = tmp;
+					t2 = t1 - 0.000001;
+					x = x0 + (vx * t2);
+					y = y0 + (vy * t2);
+					z = z0 + (vz * t2);
+					dx = x - mx - 0.5;
+					dy = y - 0.1;
+					dz = z - mz - 0.5;
+					f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.17);
+					nx = dx * f;
+					ny = dy * (f + 1.28);
+					nz = dz * f;
+					e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+					nx = nx * e;
+					ny = ny * e;
+					nz = nz * e;
+					tmp = vx * nx + vy * ny + vz * nz; tmp = tmp + tmp;
+					rx = tmp * nx - vx;
+					ry = tmp * ny - vy;
+					rz = tmp * nz - vz;
+					for (int i = 0; i < 3; i++) {
+						if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
+							mat = &(materials[MAT_DIF_TOR]);
+							intense = DIFFUSE(i) * colorFactor;
+							ADD_COLOR
+							intense = SPECULAR(i);
+							if (intense < 0.0) {
+								intense = intense * intense;
+								intense = intense * intense * colorFactor;
+								mat = &(materials[MAT_SPE_TOR]);
+								ADD_COLOR
+							}
+						}
+					}
+					RETURN_COLOR
+					break;
+portalPortal:
+					t1 = temp;
 					precalcActive = false;
 					deepness++;
 					if (deepness > 16) {
@@ -765,58 +843,8 @@ rayLast = t1;
 					if (vx > 0.0) {tNextX = (mx + 1.0 - x0) / vx;} else if (vx < 0.0) {tNextX = (mx - x0) / vx;}
 					if (vz > 0.0) {tNextZ = (mz + 1.0 - z0) / vz;} else if (vz < 0.0) {tNextZ = (mz - z0) / vz;}
 					idx = mx + 15 * mz;
-					break;
-portalTorus:
-					dx = x0 - mx - 0.5;
-					dy = y0;
-					dz = z0 - mz - 0.5;
-					a = 2.0 * ((vx * dx) + (vz * dz)); // r: t
-					b = a + (2.0 * vy * dy); // l^1 : t
-					c = (dx * dx) + (dz * dz); // r: 1
-					f = c + (dy * dy) + 0.15; // l^1: 1
-					e = (vx * vx) + (vz * vz); // r: t^2
-					t4 = 1.0;
-					t3 = 2.0 * b;
-					t2 = (2.0 * f) + (b * b) - (0.64 * e);
-					t1 = (2.0 * b * f) - (0.64 * a);
-					t0 = (f * f) - (0.64 * c);
-					if (!Ferrari(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {break;}
-					t1 = tmp;
-					t2 = t1 - 0.000001;
-					x = x0 + (vx * t2);
-					y = y0 + (vy * t2);
-					z = z0 + (vz * t2);
-					dx = x - mx - 0.5;
-					dy = y;
-					dz = z - mz - 0.5;
-					f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.17);
-					nx = dx * f;
-					ny = dy * (f + 1.28);
-					nz = dz * f;
-					e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
-					nx = nx * e;
-					ny = ny * e;
-					nz = nz * e;
-					tmp = vx * nx + vy * ny + vz * nz; tmp = tmp + tmp;
-					rx = tmp * nx - vx;
-					ry = tmp * ny - vy;
-					rz = tmp * nz - vz;
-					for (int i = 0; i < 3; i++) {
-						if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
-							mat = &(materials[MAT_DIF_TOR]);
-							intense = DIFFUSE(i) * colorFactor;
-							ADD_COLOR
-							intense = SPECULAR(i);
-							if (intense < 0.0) {
-								intense = intense * intense;
-								intense = intense * intense * colorFactor;
-								mat = &(materials[MAT_SPE_TOR]);
-								ADD_COLOR
-							}
-						}
-					}
-					RETURN_COLOR
-
+					temp = LAST_T;
+					goto portalTorusC;
 					break;
 
 				case BLOCK:
