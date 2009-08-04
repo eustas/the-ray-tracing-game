@@ -34,9 +34,7 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, INT) {
 	}
 	castingRay = false;
 
-	doubtol = 1.0;
-	while (1.0 + doubtol > 1.0) {doubtol *= 0.5;}
-	doubtol = sqrt(doubtol);
+	//doubtol = 1.0; while (1.0 + doubtol > 1.0) {doubtol *= 0.5;} doubtol = sqrt(doubtol);
 
 	doubmin = 0.5;
 	for (int j = 1; j <= 100; ++j) {

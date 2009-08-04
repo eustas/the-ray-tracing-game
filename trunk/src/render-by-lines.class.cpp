@@ -6,8 +6,9 @@ class CLASS_NAME {
 
 // solve quartic equation using either quadratic, Ferrari's or Neumark's algorithm
 int quartic(const number a, const number b, const number c, const number d, number *rts) const {
-	int j, k, nq, nr;
-	number roots[4];
+	int k;
+/*	number roots[4];
+	int j,nq;
 
 	number odd = (a < 0.0) ? -a : a;
 	odd += (c < 0.0) ? -c : c;
@@ -25,32 +26,31 @@ int quartic(const number a, const number b, const number c, const number d, numb
 				++j;
 			}
 		}
-		nr = j;
-		return nr;
-	}
+		return j;
+	}*/
 	k = (a < 0.0) ? 1 : 0;
 	k += (b < 0.0) ? k + 1 : k;
 	k += (c < 0.0) ? k + 1 : k;
 	k += (d < 0.0) ? k + 1 : k;
 	switch (k) {
-		case 0:nr = ferrari(a, b, c, d, rts);break;
-		case 1:nr = neumark(a, b, c, d, rts);break;
-		case 2:nr = neumark(a, b, c, d, rts);break;
-		case 3:nr = ferrari(a, b, c, d, rts);break;
-		case 4:nr = ferrari(a, b, c, d, rts);break;
-		case 5:nr = neumark(a, b, c, d, rts);break;
-		case 6:nr = ferrari(a, b, c, d, rts);break;
-		case 7:nr = ferrari(a, b, c, d, rts);break;
-		case 8:nr = neumark(a, b, c, d, rts);break;
-		case 9:nr = ferrari(a, b, c, d, rts);break;
-		case 10:nr = ferrari(a, b, c, d, rts);break;
-		case 11:nr = neumark(a, b, c, d, rts);break;
-		case 12:nr = ferrari(a, b, c, d, rts);break;
-		case 13:nr = ferrari(a, b, c, d, rts);break;
-		case 14:nr = ferrari(a, b, c, d, rts);break;
-		case 15:nr = ferrari(a, b, c, d, rts);break;
+		case 0:return ferrari(a, b, c, d, rts);
+		case 1:return neumark(a, b, c, d, rts);
+		case 2:return neumark(a, b, c, d, rts);
+		case 3:return ferrari(a, b, c, d, rts);
+		case 4:return ferrari(a, b, c, d, rts);
+		case 5:return neumark(a, b, c, d, rts);
+		case 6:return ferrari(a, b, c, d, rts);
+		case 7:return ferrari(a, b, c, d, rts);
+		case 8:return neumark(a, b, c, d, rts);
+		case 9:return ferrari(a, b, c, d, rts);
+		case 10:return ferrari(a, b, c, d, rts);
+		case 11:return neumark(a, b, c, d, rts);
+		case 12:return ferrari(a, b, c, d, rts);
+		case 13:return ferrari(a, b, c, d, rts);
+		case 14:return ferrari(a, b, c, d, rts);
+		case 15:return ferrari(a, b, c, d, rts);
 	}
-	return nr;
+	return 0;
 }
 
 // solve the quartic equation; method: Ferrari-Lagrange
@@ -64,10 +64,10 @@ int ferrari(const number a, const number b, const number c, const number d, numb
 	number y = cubic(p, q, r);
 
 	number esq = 0.25 * asq - b - y;
-	if (esq < 0.0) {return (0);}
+	if (esq < 0.0) {return 0;}
 
 	number fsq = 0.25 * y * y - d;
-	if (fsq < 0.0) {return (0);}
+	if (fsq < 0.0) {return 0;}
 	number ef = -(0.25 * a * y + 0.5 * c);
 	if (((a > 0.0) && (y > 0.0) && (c > 0.0)) || ((a > 0.0) && (y < 0.0) && (c
 			< 0.0)) || ((a < 0.0) && (y > 0.0) && (c < 0.0)) || ((a < 0.0)
@@ -377,11 +377,13 @@ number cubic(const number p, const number q, const number r) const {
 
 		number rts[4];
 		int sol = quartic(a, b, c, d, rts);
+		//int sol = ferrari(a, b, c, d, rts);
+		//int sol = neumark(a, b, c, d, rts);
 		for (int i = 0; i < sol; i++) {
 			double s = rts[i];
 			if ((s < result) && (s > tStart) && (s < tEnd)) {result = s;}
 		}
-
+//		if ((tStart > 1.0)&&(sol>0)&&(result == LAST_T)){fwprintf_s(debugFile,L"%d (%f %f %f %f %f) [%f %f %f %f] {%f %f}\n",sol,A,B,C,D,E,rts[0],rts[1],rts[2],rts[3],tStart,tEnd);}
 		return result < LAST_T;
 	}
 
@@ -435,6 +437,7 @@ restart:
 		number tStart, tEnd;
 		bool boundsFloor;
 		CalcTimeBox(x0, y0, z0, vx, vy, vz, tStart, tEnd, boundsFloor);
+		tStart+=0.001;
 		number rayFirst = tStart;
 
 		int idx = mx + 15 * mz;
@@ -1074,6 +1077,7 @@ portalTorusC:
 					if (temp < tmp) {goto portalPortal;}
 //portalTorus
 					t1 = tmp;
+// TODO: t2 = t1 - 0.000001;
 					t2 = t1 - 0.000001;
 					x = x0 + (vx * t2);
 					y = y0 + (vy * t2);
