@@ -4,86 +4,385 @@ class CLASS_NAME {
 	number const my_y0;
 	number const my_z0;
 
-	bool Ferrari(number A, number B,number C,number D,number E,number tStart, number tEnd, number &result) const {
-		if (A == 0.0) {return false; /* todo: cordano */}
-		number iA = 1.0 / A;
-		number iA2 = iA * iA;
-		number iA3 = iA * iA2;
-		number iA4 = iA2 * iA2;
-		number B2 = B * B;
-		number B3 = B * B2;
-		number B4 = B2* B2;
-		number alpha = (C * iA) - (0.375 * B2 * iA2);
-		number beta = (0.125 * B3 * iA3) - (0.5 * B * C * iA2) + (D * iA);
-		number gamma = (0.0625 * C * B2 * iA3) - (0.01171875 * B4 * iA4) - (0.25 * B * D * iA2) + (E * iA);
-		number D1, D2, tmp;
-		result = LAST_T;
-		number t;
-		if (abs(beta)<0.000000001) {
-//		if (beta == 0.0) {
-			D1 = (alpha * alpha) - (4.0 * gamma);
-			if (abs(D1)<0.000000001) {D1=0.0;}
-			if (D1 < 0.0) {return false;}
-			D1 = sqrt(D1);
-			tmp = -B * iA;
-			D2 = 0.5 * (-alpha - D1);
-			if (abs(D2) < 0.000000001) {D2=0.0;}
-			if (D2 >= 0.0) {
-				D2 = sqrt(D2);
-				t = tmp - D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
-				t = tmp + D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
+// solve quartic equation using either quadratic, Ferrari's or Neumark's algorithm
+int quartic(const number a, const number b, const number c, const number d, number *rts) const {
+	int j, k, nq, nr;
+	number roots[4];
+
+	number odd = (a < 0.0) ? -a : a;
+	odd += (c < 0.0) ? -c : c;
+	number even = (b < 0.0) ? -b : b;
+	even += (d < 0.0) ? -d : d;
+
+	if (odd < even * doubtol) {
+		nq = qudrtc(b, d, roots, b * b - 4.0 * d);
+		j = 0;
+		for (k = 0; k < nq; ++k) {
+			if (roots[k] > 0.0) {
+				rts[j] = sqrt(roots[k]);
+				rts[j + 1] = -rts[j];
+				++j;
+				++j;
 			}
-			D2 = 0.5 * (-alpha - D1);
-			if (abs(D2) < 0.000000001) {D2=0.0;}
-			if (D2 >= 0.0) {
-				D2 = sqrt(D2);
-				t = tmp - D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
-				t = tmp + D2; if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
-			}
-			return (result < LAST_T);
 		}
-		number alpha2 = alpha * alpha;
-		number P = (-0.0833333333333333333333333333333333333 * alpha2) - gamma;
-		number Q = (0.333333333333333333333333333333333333 * alpha * gamma)-(0.00925925925925925925925925925925932593 * alpha2 * alpha) - (0.125 * beta * beta);
-		D1 = (0.25 * Q * Q) + (0.037037037037037037037037037037037037 * P * P * P);
-		std::complex <number> R0 = (0.5 * Q);
-		std::complex <number> R1 = (D1);
-		std::complex <number> U;
-		std::complex <number> y;
-		bool inv = false;
-		std::complex <number> R = std::sqrt(R1) - R0;
-inve:
-		if (std::abs(R) < 0.000000001) {
-			U = std::pow(-Q, 0.333333333333333333333333333333333333);
-			y = U - (0.833333333333333333333333333333333333 * alpha);
+		nr = j;
+		return nr;
+	}
+	k = (a < 0.0) ? 1 : 0;
+	k += (b < 0.0) ? k + 1 : k;
+	k += (c < 0.0) ? k + 1 : k;
+	k += (d < 0.0) ? k + 1 : k;
+	switch (k) {
+		case 0:nr = ferrari(a, b, c, d, rts);break;
+		case 1:nr = neumark(a, b, c, d, rts);break;
+		case 2:nr = neumark(a, b, c, d, rts);break;
+		case 3:nr = ferrari(a, b, c, d, rts);break;
+		case 4:nr = ferrari(a, b, c, d, rts);break;
+		case 5:nr = neumark(a, b, c, d, rts);break;
+		case 6:nr = ferrari(a, b, c, d, rts);break;
+		case 7:nr = ferrari(a, b, c, d, rts);break;
+		case 8:nr = neumark(a, b, c, d, rts);break;
+		case 9:nr = ferrari(a, b, c, d, rts);break;
+		case 10:nr = ferrari(a, b, c, d, rts);break;
+		case 11:nr = neumark(a, b, c, d, rts);break;
+		case 12:nr = ferrari(a, b, c, d, rts);break;
+		case 13:nr = ferrari(a, b, c, d, rts);break;
+		case 14:nr = ferrari(a, b, c, d, rts);break;
+		case 15:nr = ferrari(a, b, c, d, rts);break;
+	}
+	return nr;
+}
+
+// solve the quartic equation; method: Ferrari-Lagrange
+int ferrari(const number a, const number b, const number c, const number d, number *rts) const {
+	number v1[4], v2[4], e, f, h, hh;
+
+	number asq = a * a;
+	number p = b;
+	number q = a * c - 4.0 * d;
+	number r = (asq - 4.0 * b) * d + c * c;
+	number y = cubic(p, q, r);
+
+	number esq = 0.25 * asq - b - y;
+	if (esq < 0.0) {return (0);}
+
+	number fsq = 0.25 * y * y - d;
+	if (fsq < 0.0) {return (0);}
+	number ef = -(0.25 * a * y + 0.5 * c);
+	if (((a > 0.0) && (y > 0.0) && (c > 0.0)) || ((a > 0.0) && (y < 0.0) && (c
+			< 0.0)) || ((a < 0.0) && (y > 0.0) && (c < 0.0)) || ((a < 0.0)
+			&& (y < 0.0) && (c > 0.0)) || (a == 0.0) || (y == 0.0)
+			|| (c == 0.0)) {
+		if ((b < 0.0) && (y < 0.0) && (esq > 0.0)) {
+			e = sqrt(esq);
+			f = ef / e;
+		} else if ((d < 0.0) && (fsq > 0.0)) {
+			f = sqrt(fsq);
+			e = ef / f;
 		} else {
-			U = std::pow(R, 0.333333333333333333333333333333333333);
-			y = U - (0.833333333333333333333333333333333333 * alpha) - ((0.333333333333333333333333333333333333 * P) / U);
+			e = sqrt(esq);
+			f = sqrt(fsq);
+			if (ef < 0.0) {
+				f = -f;
+			}
 		}
-		number W = alpha + (2.0 * std::real(y));
-		if (W < 0.0) {if (inv){goto fin;} else {inv=true; R = std::sqrt(R1) - R0; goto inve;}/*fwprintf_s(debugFile, L"D %f| %f %f %f %f %f\n",W,A,B,C,D,E);return false;*/}
-		W = sqrt(W);
-		number iW = 1 / W;
-		number D0 = -(3.0 * alpha) - (2.0 * std::real(y));
-		number D4 = 2.0 * beta * iW;
-		tmp = -0.25 * B * iA;
-		D1 = D0 - D4;
-//		if ((D1<0.0)&&(D1>-0.0000000000000001)){D1=0.0;}
-		if (D1 >= 0.0) {
-			D1 = sqrt(D1);
-			t = tmp + (0.5 * (W - D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
-			t = tmp + (0.5 * (W + D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
+	} else {
+		e = sqrt(esq);
+		f = sqrt(fsq);
+		if (ef < 0.0) {
+			f = -f;
 		}
-		D1 = D0 + D4;
-//		if ((D1<0.0)&&(D1>-0.0000000000000001)){D1=0.0;}
-		if (D1 >= 0.0) {
-			D1 = sqrt(D1);
-			t = tmp + (0.5 * (-W - D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
-			t = tmp + (0.5 * (-W + D1)); if ((t > tStart)&&(t < tEnd)&&(t < result)) {result = t;}
+	}
+	number ainv2 = a * 0.5;
+	number g = ainv2 - e;
+	number gg = ainv2 + e;
+	if (((b > 0.0) && (y > 0.0)) || ((b < 0.0) && (y < 0.0))) {
+		if ((a > 0.0) && (e != 0.0)) {
+			g = (b + y) / gg;
+		} else if (e != 0.0) {
+			gg = (b + y) / g;
 		}
-		if (!inv) {inv=true; R = std::sqrt(R1) - R0; goto inve;}
-fin:
-		return (result < LAST_T);
+	}
+	if ((y == 0.0) && (f == 0.0)) {
+		h = 0.0;
+		hh = 0.0;
+	} else if (((f > 0.0) && (y < 0.0)) || ((f < 0.0) && (y > 0.0))) {
+		hh = -0.5 * y + f;
+		h = d / hh;
+	} else {
+		h = -0.5 * y - f;
+		hh = d / h;
+	}
+	int n1 = qudrtc(gg, hh, v1, gg * gg - 4.0 * hh);
+	int n2 = qudrtc(g, h, v2, g * g - 4.0 * h);
+	int nquar = n1 + n2;
+	rts[0] = v1[0];
+	rts[1] = v1[1];
+	rts[n1 + 0] = v2[0];
+	rts[n1 + 1] = v2[1];
+	return nquar;
+}
+
+// solve the quartic equation; method: Neumark
+int neumark(const number a, const number b, const number c, const number d, number *rts) const {
+	number gdisrt, hdisrt, g2, h2;
+	number v1[4], v2[4];
+
+	number asq = a * a;
+
+	number p = -b * 2.0;
+	number q = b * b + a * c - 4.0 * d;
+	number r = (c - a * b) * c + asq * d;
+	number y = cubic(p, q, r);
+
+	number bmy = b - y;
+	number y4 = y * 4.0;
+	number d4 = d * 4.0;
+	number bmysq = bmy * bmy;
+	number gdis = asq - y4;
+	number hdis = bmysq - d4;
+	if ((gdis < 0.0) || (hdis < 0.0)) {
+		return (0);
+	}
+
+	number g1 = a * 0.5;
+	number h1 = bmy * 0.5;
+	number gerr = asq + y4;
+	number herr = hdis;
+	if (d > 0.0) {
+		herr = bmysq + d4;
+	}
+
+	if ((y < 0.0) || (herr * gdis > gerr * hdis)) {
+		gdisrt = sqrt(gdis);
+		g2 = gdisrt * 0.5;
+		if (gdisrt != 0.0) {
+			h2 = (a * h1 - c) / gdisrt;
+		} else {
+			h2 = 0.0;
+		}
+	} else {
+		hdisrt = sqrt(hdis);
+		h2 = hdisrt * 0.5;
+		if (hdisrt != 0.0) {
+			g2 = (a * h1 - c) / hdisrt;
+		} else {
+			g2 = 0.0;
+		}
+	}
+	number h = h1 - h2;
+	number hh = h1 + h2;
+	number hmax = hh;
+	if (hmax < 0.0) {
+		hmax = -hmax;
+	}
+	if (hmax < h) {
+		hmax = h;
+	}
+	if (hmax < -h) {
+		hmax = -h;
+	}
+	if ((h1 > 0.0) && (h2 > 0.0)) {
+		h = d / hh;
+	}
+	if ((h1 < 0.0) && (h2 < 0.0)) {
+		h = d / hh;
+	}
+	if ((h1 > 0.0) && (h2 < 0.0)) {
+		hh = d / h;
+	}
+	if ((h1 < 0.0) && (h2 > 0.0)) {
+		hh = d / h;
+	}
+	if (h > hmax) {
+		h = hmax;
+	}
+	if (h < -hmax) {
+		h = -hmax;
+	}
+	if (hh > hmax) {
+		hh = hmax;
+	}
+	if (hh < -hmax) {
+		hh = -hmax;
+	}
+
+	number g = g1 - g2;
+	number gg = g1 + g2;
+	number gmax = gg;
+	if (gmax < 0.0) {
+		gmax = -gmax;
+	}
+	if (gmax < g) {
+		gmax = g;
+	}
+	if (gmax < -g) {
+		gmax = -g;
+	}
+	if ((g1 > 0.0) && (g2 > 0.0)) {
+		g = y / gg;
+	}
+	if ((g1 < 0.0) && (g2 < 0.0)) {
+		g = y / gg;
+	}
+	if ((g1 > 0.0) && (g2 < 0.0)) {
+		gg = y / g;
+	}
+	if ((g1 < 0.0) && (g2 > 0.0)) {
+		gg = y / g;
+	}
+	if (g > gmax) {
+		g = gmax;
+	}
+	if (g < -gmax) {
+		g = -gmax;
+	}
+	if (gg > gmax) {
+		gg = gmax;
+	}
+	if (gg < -gmax) {
+		gg = -gmax;
+	}
+
+	int n1 = qudrtc(gg, hh, v1, gg * gg - 4.0 * hh);
+	int n2 = qudrtc(g, h, v2, g * g - 4.0 * h);
+	int nquar = n1 + n2;
+	rts[0] = v1[0];
+	rts[1] = v1[1];
+	rts[n1 + 0] = v2[0];
+	rts[n1 + 1] = v2[1];
+	return (nquar);
+}
+
+// solve the quadratic equation: x**2+b*x+c = 0
+int qudrtc(const number b, const number c, number *rts, const number dis) const {
+	if (dis >= 0.0) {
+		number rtdis = sqrt(dis);
+		if (b > 0.0) {
+			rts[0] = (-b - rtdis) * 0.5;
+		} else {
+			rts[0] = (-b + rtdis) * 0.5;
+		}
+		if (rts[0] == 0.0) {
+			rts[1] = -b;
+		} else {
+			rts[1] = c / rts[0];
+		}
+		return 2;
+	}
+
+	rts[0] = 0.0;
+	rts[1] = 0.0;
+	return 0;
+}
+
+// find the lowest real root of the cubic - x**3 + p*x**2 + q*x + r = 0
+number cubic(const number p, const number q, const number r) const {
+	number po3, po3sq, qo3;
+	number uo3, u2o3, uo3sq4, uo3cu4;
+	number v, vsq, wsq;
+	number mcube, n;
+	number muo3, s, scube, t, cosk, sinsqk;
+	number root;
+
+	number m = 0.0;
+	int nrts = 0;
+	if ((p > doubmax) || (p < -doubmax)) {
+		return -p;
+	}
+	if ((q > doubmax) || (q < -doubmax)) {
+		if (q > 0.0) {
+			return -r / q;
+		}
+		return -sqrt(-q);
+	}
+	if ((r > doubmax) || (r < -doubmax)) {
+		return ((r < 0.0) ? exp(log(-r)
+			* 0.3333333333333333333333333333333333333333333333) : -exp(log(r)
+			* 0.3333333333333333333333333333333333333333333333));
+	}
+	po3 = p * 0.3333333333333333333333333333333333333333333333;
+	po3sq = po3 * po3;
+	if (po3sq > doubmax) {
+		return -p;
+	}
+	v = r + po3 * (po3sq + po3sq - q);
+	if ((v > doubmax) || (v < -doubmax)) {
+		return -p;
+	}
+	vsq = v * v;
+	qo3 = q * 0.3333333333333333333333333333333333333333333333;
+	uo3 = qo3 - po3sq;
+	u2o3 = uo3 + uo3;
+	if ((u2o3 > doubmax) || (u2o3 < -doubmax)) {
+		if (p == 0.0) {
+			if (q > 0.0) {
+				root = -r / q;
+			} else {
+				root = -sqrt(-q);
+			}
+		} else {
+			root = -q / p;
+		}
+	}
+	uo3sq4 = u2o3 * u2o3;
+	if (uo3sq4 > doubmax) {
+		if (p == 0.0) {
+		
+			if (q > 0.0) {
+				root = -r / q;
+			} else {
+				root = -sqrt(fabs(q));
+			}
+		} else {
+			root = -q / p;
+		}
+	}
+	uo3cu4 = uo3sq4 * uo3;
+	wsq = uo3cu4 + vsq;
+	if (wsq >= 0.0) {
+		nrts = 1;
+		if (v <= 0.0) {mcube = (-v + sqrt(wsq)) * 0.5;}
+		if (v > 0.0) {mcube = (-v - sqrt(wsq)) * 0.5;}
+		m = (mcube < 0.0) ? -exp(log(-mcube)
+			* 0.3333333333333333333333333333333333333333333333) : exp(log(mcube)
+			* 0.3333333333333333333333333333333333333333333333);
+		if (m != 0.0) {n = -uo3 / m;}
+		else {n = 0.0;}
+		return m + n - po3;
+	}
+	nrts = 3;
+	if (uo3 >= 0.0) {return ((v < 0.0) ? -exp(log(-v)
+			* 0.3333333333333333333333333333333333333333333333) : exp(log(v)
+			* 0.3333333333333333333333333333333333333333333333)) - po3;}
+	muo3 = -uo3;
+	s = sqrt(muo3);
+	scube = s * muo3;
+	t = -v / (scube + scube);
+	cosk = cos(acos(t) * 0.3333333333333333333333333333333333333333333333);
+	if (po3 < 0.0) {return (s + s) * cosk - po3;}
+	sinsqk = 1.0 - cosk * cosk;
+	if (sinsqk < 0.0) {sinsqk = 0.0;}
+	return s * (-cosk - 1.7320508075688772935274463415059 * sqrt(sinsqk)) - po3;
+}
+
+
+	bool Solve(const number A, const number B,const number C,const number D,const number E,const number tStart,const number tEnd, number &result) const {
+		if (A == 0.0) {return false; /* todo: cordano */}
+		number a = B / A;
+		number b = C / A;
+		number c = D / A;
+		number d = E / A;
+		result = LAST_T;
+
+		number rts[4];
+		int sol = quartic(a, b, c, d, rts);
+		for (int i = 0; i < sol; i++) {
+			double s = rts[i];
+			if ((s < result) && (s > tStart) && (s < tEnd)) {result = s;}
+		}
+
+		return result < LAST_T;
 	}
 
 	bool CanSee(const int light, number x0, number y0, number z0, bool &lensed, number &factor, number &lx, number &ly, number &lz) const {
@@ -195,7 +494,7 @@ portalTorusC:
 					t2 = (2.0 * f) + (b * b) - (0.64 * e);
 					t1 = (2.0 * b * f) - (0.64 * a);
 					t0 = (f * f) - (0.64 * c);
-					if (!Ferrari(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {
+					if (!Solve(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {
 						if (temp<LAST_T) {goto portalPortal;}
 						break;
 					}
@@ -768,7 +1067,7 @@ portalTorusC:
 					t2 = (2.0 * f) + (b * b) - (0.64 * e);
 					t1 = (2.0 * b * f) - (0.64 * a);
 					t0 = (f * f) - (0.64 * c);
-					if (!Ferrari(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {
+					if (!Solve(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {
 						if (temp < LAST_T) {goto portalPortal;}
 						break;
 					}
