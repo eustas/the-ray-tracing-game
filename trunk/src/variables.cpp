@@ -14,6 +14,10 @@ number microY = -1.0;
 int demoMode = 0;
 number fpsGap = 1.0;
 
+number doubmax; // approx square root of max number number
+number doubmin; // smallest number number
+number doubtol; // tolerance of number numbers
+
 number lightAlphaDelta = 0.005;
 double lightAlpha = 0.0;
 

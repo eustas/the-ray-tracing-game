@@ -34,6 +34,17 @@ INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, INT) {
 	}
 	castingRay = false;
 
+	doubtol = 1.0;
+	while (1.0 + doubtol > 1.0) {doubtol *= 0.5;}
+	doubtol = sqrt(doubtol);
+
+	doubmin = 0.5;
+	for (int j = 1; j <= 100; ++j) {
+		doubmin = doubmin * doubmin;
+		if ((doubmin * doubmin) <= (doubmin * doubmin * 0.5)) {break;}
+	}
+	doubmax = 0.7 / sqrt(doubmin);
+
 	isLaptop = IsLaptop();
 
 	hasManualMusic = GetFileAttributes(FILE_MANUAL_MUSIC) != INVALID_FILE_ATTRIBUTES;
