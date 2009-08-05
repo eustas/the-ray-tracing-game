@@ -367,17 +367,18 @@ number cubic(const number p, const number q, const number r) const {
 }
 
 
-	bool Solve(const number A, const number B,const number C,const number D,const number E,const number tStart,const number tEnd, number &result) const {
-		if (A == 0.0) {return false; /* todo: cordano */}
-		number a = B / A;
-		number b = C / A;
-		number c = D / A;
-		number d = E / A;
+//	bool Solve(const number A, const number B,const number C,const number D,const number E,const number tStart,const number tEnd, number &result) const {
+//		if (A == 0.0) {return false; /* todo: cordano */}
+//		number a = B / A;
+//		number b = C / A;
+//		number c = D / A;
+//		number d = E / A;
+	bool Solve(const number a, const number b,const number c,const number d,const number tStart,const number tEnd, number &result) const {
 		result = LAST_T;
 
 		number rts[4];
-		int sol = quartic(a, b, c, d, rts);
-		//int sol = ferrari(a, b, c, d, rts);
+		//int sol = quartic(a, b, c, d, rts);
+		int sol = ferrari(a, b, c, d, rts);
 		//int sol = neumark(a, b, c, d, rts);
 		for (int i = 0; i < sol; i++) {
 			double s = rts[i];
@@ -437,7 +438,7 @@ restart:
 		number tStart, tEnd;
 		bool boundsFloor;
 		CalcTimeBox(x0, y0, z0, vx, vy, vz, tStart, tEnd, boundsFloor);
-		tStart+=0.001;
+		tStart+=0.00000001;
 		number rayFirst = tStart;
 
 		int idx = mx + 15 * mz;
@@ -492,12 +493,12 @@ portalTorusC:
 					c = (dx * dx) + (dz * dz); // r: 1
 					f = c + (dy * dy) + 0.15; // l^1: 1
 					e = (vx * vx) + (vz * vz); // r: t^2
-					t4 = 1.0;
+					//t4 = 1.0;
 					t3 = 2.0 * b;
 					t2 = (2.0 * f) + (b * b) - (0.64 * e);
 					t1 = (2.0 * b * f) - (0.64 * a);
 					t0 = (f * f) - (0.64 * c);
-					if (!Solve(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {
+					if (!Solve(/*t4,*/t3,t2,t1,t0, tStart, tEnd, tmp)) {
 						if (temp<LAST_T) {goto portalPortal;}
 						break;
 					}
@@ -863,7 +864,7 @@ mirrorPlane:
 		number invConeA = 1 / coneA;
 		bool cAp = coneA > 0.0;
 		number sx,sy,sz,k,coneC, econeA, einvConeA;
-		number D, t0, t1, t2, t3, t4, tmp, temp;
+		number D, t0, t1, t2, t3, t4, tmp, temp, tShi, x1, y1, z1, vx1, vz1;
 		number nx,ny,nz;
 		number a,b,c,e,f,g;
 		number tResult;
@@ -890,7 +891,7 @@ mirrorPlane:
 		bool boundsFloor;
 
 		number cox, coy, coz, conx, cony, conz;
-		bool doCone;
+		int doWhat;
 		number rayT1[32], rayT2[32];
 		bool hasRay = false;
 		int dir;
@@ -1057,23 +1058,26 @@ rayLast = t1;
 					}
 					temp = t1;
 portalTorusC:
-					dx = x0 - mx - 0.5;
-					dy = y0 - 0.1;
-					dz = z0 - mz - 0.5;
+					tShi = ((mx + 0.5 - x0) * vx) + ((0.1 - y0) * vy) + ((mz + 0.5 - z0) * vz);
+					x1 = x0 + (vx * tShi); y1 = y0 + (vy * tShi); z1 = z0 + (vz * tShi);
+					dx = x1 - mx - 0.5;
+					dy = y1 - 0.1;
+					dz = z1 - mz - 0.5;
 					a = 2.0 * ((vx * dx) + (vz * dz)); // r: t
 					b = a + (2.0 * vy * dy); // l^1 : t
 					c = (dx * dx) + (dz * dz); // r: 1
 					f = c + (dy * dy) + 0.15; // l^1: 1
 					e = (vx * vx) + (vz * vz); // r: t^2
-					t4 = 1.0;
+					//t4 = 1.0;
 					t3 = 2.0 * b;
 					t2 = (2.0 * f) + (b * b) - (0.64 * e);
 					t1 = (2.0 * b * f) - (0.64 * a);
 					t0 = (f * f) - (0.64 * c);
-					if (!Solve(t4,t3,t2,t1,t0, tStart, tEnd, tmp)) {
+					if (!Solve(/*t4,*/t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {
 						if (temp < LAST_T) {goto portalPortal;}
 						break;
 					}
+					tmp += tShi;
 					if (temp < tmp) {goto portalPortal;}
 //portalTorus
 					t1 = tmp;
@@ -1387,7 +1391,7 @@ rayLast = cot;
 				break;
 
 				case MIRROR:
-					doCone = false;
+					doWhat = DO_NOTHING;
 					sx = .5 + mx - x0;
 					sy = CONE_H - y0;
 					sz = .5 + mz - z0;
@@ -1422,80 +1426,57 @@ rayLast = cot;
 					ny = CONE_DY;
 					z = z0 + vz * t2;
 					nz = (z - mz - 0.5) * tmp;
-					tResult = t1; doCone = true; cox = x; coy = y; coz = z; conx= nx; cony = ny; conz = nz;
+					tResult = t1; doWhat = DO_CONE; cox = x; coy = y; coz = z; conx= nx; cony = ny; conz = nz;
 
 mirrorPlane:
 					D = vx * nX[state] + vz * nZ[state];
-					if (D == 0.0) {goto mirrorEnd;}
+					if (D == 0.0) {goto mirrorTorus;}
 					if (precalcActive) {
 						t1 = tgt->w / D;
 					} else {
 						t1 = ((mx + 0.5 - x0) * nX[state]) + ((mz + 0.5 - z0) * nZ[state]);
 						t1 = t1 / D;
 					}
-					if (t1 > tResult) {goto mirrorEnd;}
-					if (t1 < rayFirst) {goto mirrorEnd;}
+					if (t1 > tResult) {goto mirrorTorus;}
+					if (t1 < rayFirst) {goto mirrorTorus;}
 					t2 = y0 + (vy * t1) - 0.5; // t2 == y
 					t3 = ((x0 + (vx * t1) - mx - .5) * wX[state]) + ((z0 + (vz * t1) - mz - .5) * wZ[state]); // t3 == x
 					tmp = ((t2 * t2) + (t3 * t3));
-					if (tmp < MIRROR_R_2) {
-rayLast = t1;
-						if (tmp > MIRROR_WR_2) {
-							clr[1] += 1.0;
-							RETURN_COLOR
-						} else {
-							// TODO: cone first?
-							APPLY_RAY
-							ny = 0.0;
-							nx = nX[state];
-							nz = nZ[state];
-							tmp = ((nx * vx) + (ny * vy) + (nz * vz));
-							if (tmp > 0) { nx = -nx; ny = -ny; nz= -nz; tmp = -tmp;}
-							tmp = vx * nx + vy * ny + vz * nz; tmp = tmp + tmp;
-							rx = tmp * nx - vx;
-							ry = tmp * ny - vy;
-							rz = tmp * nz - vz;
-							t2 = t1 - 0.000001;
-							x = x0 + vx * t1;
-							y = y0 + vy * t1;
-							z = z0 + vz * t1;
-							precalcActive = false;
-							deepness++; if (deepness > 16) {
-								clr[0] += (rand() & 0x3F) / 255.0;
-								clr[1] += (rand() & 0x3F) / 255.0;
-								clr[2] += (rand() & 0x3F) / 255.0;
-								RETURN_COLOR
-							}
-							x0 = x;
-							y0 = y;
-							z0 = z;
-							vx = -rx;
-							vy = -ry;
-							vz = -rz;
-							CalcTimeBox(x0, y0, z0, vx, vy, vz, tStart, tEnd, boundsFloor);
+					if (tmp > MIRROR_WR_2) {goto mirrorTorus;}
+					tResult = t1;
+					doWhat = DO_MIRROR;
 
-							tStart += 0.000000001;
-							tEnd   += 0.000000001;
-							rayFirst = tStart;
-							rayLast = tEnd;
-
-							if (vx > 0.0) {tmx = 1.0 / vx; tNextX = (mx + 1.0 - x0) / vx; dmx = 1;}
-							else if (vx < 0.0) {tmx = -1.0 / vx;tNextX = (mx - x0) / vx; dmx = -1;}
-							else {tNextX = LAST_T;}
-
-							if (vz > 0.0) {tmz = 1.0 / vz; tNextZ = (mz + 1.0 - z0) / vz; dmz = 1;}
-							else if (vz < 0.0) {tmz = -1.0 / vz; tNextZ = (mz - z0) / vz; dmz = -1;}
-							else { tNextZ = LAST_T;}
-
-							coneA = (vx * vx) + (vz * vz) - (vy * vy * INV_64_CONE_H_2);
-							invConeA = 1 / coneA;
-							cAp = coneA > 0.0;
-							goto noCycle;
-							//break;
-						}
+mirrorTorus:
+					tShi = ((mx + 0.5 - x0) * vx) + ((0.5 - y0) * vy) + ((mz + 0.5 - z0) * vz);
+					x1 = x0 + (vx * tShi); y1 = y0 + (vy * tShi); z1 = z0 + (vz * tShi);
+					t1 = x1 - mx - 0.5;
+					t2 = y1 - 0.5;
+					t3 = z1 - mz - 0.5;
+					dx = (wX[state] * t1) + (wZ[state] * t3);
+					dy = (wZ[state] * t1) - (wX[state] * t3);
+					dz = t2;
+					t1 = (wX[state] * vx) + (wZ[state] * vz);
+					t2 = (wZ[state] * vx) - (wX[state] * vz);
+					a = 2.0 * ((t1 * dx) + (vy * dz)); // r: t
+					b = a + (2.0 * t2 * dy); // l^1 : t
+					c = (dx * dx) + (dz * dz); // r: 1
+					f = c + (dy * dy) + 0.0195; // l^1: 1
+					e = (t1 * t1) + (vy * vy); // r: t^2
+					//t4 = 1.0;
+					t3 = 2.0 * b;
+					t2 = (2.0 * f) + (b * b) - (0.0784 * e);
+					t1 = (2.0 * b * f) - (0.0784 * a);
+					t0 = (f * f) - (0.0784 * c);
+					if (!Solve(/*t4,*/t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {
+						goto mirrorEnd;
 					}
+					tmp += tShi;
+					if (tmp > tResult) {goto mirrorEnd;}
+					tResult = tmp;
+					doWhat = DO_TORUS;
+
 mirrorEnd:
-					if (doCone) {
+					if (doWhat == DO_CONE) {
 rayLast = cot;
 						x = cox; y = coy; z = coz; nx = conx; ny = cony; nz = conz;
 						mat = &(materials[MAT_DIF_CON]);
@@ -1507,7 +1488,104 @@ rayLast = cot;
 						}
 						clr[0] += 0.25; clr[1] += 0.25; clr[2] += 0.25;
 						RETURN_COLOR
+						break;
+					} else if (doWhat == DO_NOTHING) {
+						break;
+					} else if (doWhat == DO_TORUS) {
+rayLast = tResult;
+					t1 = tResult;
+// TODO: t2 = t1 - 0.000001;
+					t2 = t1 - 0.000001;
+					x = x0 + (vx * t2);
+					y = y0 + (vy * t2);
+					z = z0 + (vz * t2);
+					t1 = x - mx - 0.5;
+					t2 = y - 0.5;
+					t3 = z - mz - 0.5;
+					dx = (wX[state] * t1) + (wZ[state] * t3);
+					dy = -(wZ[state] * t1) + (wX[state] * t3);
+					dz = t2;
+					f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.0197);
+					nx = dx * f;
+					ny = dy * (f + 0.1568);
+					nz = dz * f;
+					e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+					t1 = nx * e;
+					t2 = ny * e;
+					t3 = nz * e;
+					nx = (wX[state] * t1) - (wZ[state] * t2);
+					nz = (wZ[state] * t1) + (wX[state] * t2);
+					ny = t3;
+					tmp = vx * nx + vy * ny + vz * nz; tmp = tmp + tmp;
+					rx = tmp * nx - vx;
+					ry = tmp * ny - vy;
+					rz = tmp * nz - vz;
+					for (int i = 0; i < 3; i++) {
+						if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
+							mat = &(materials[MAT_DIF_MIR]);
+							intense = DIFFUSE(i) * colorFactor;
+							ADD_COLOR
+							intense = SPECULAR(i);
+							if (intense < 0.0) {
+								intense = intense * intense;
+								intense = intense * intense * colorFactor;
+								mat = &(materials[MAT_SPE_MIR]);
+								ADD_COLOR
+							}
+						}
 					}
+						clr[0] += 0.1; clr[1] += 0.35; clr[2] += 0.1;						
+						RETURN_COLOR
+						break;
+					}
+// DO_MIRROR
+					t1 = tResult;
+rayLast = t1;
+					// TODO: cone first?
+					APPLY_RAY
+					ny = 0.0;
+					nx = nX[state];
+					nz = nZ[state];
+					tmp = ((nx * vx) + (ny * vy) + (nz * vz));
+					if (tmp > 0) { nx = -nx; ny = -ny; nz= -nz; tmp = -tmp;}
+					tmp = vx * nx + vy * ny + vz * nz; tmp = tmp + tmp;
+					rx = tmp * nx - vx;
+					ry = tmp * ny - vy;
+					rz = tmp * nz - vz;
+					t2 = t1 - 0.000001;
+					x = x0 + vx * t1;
+					y = y0 + vy * t1;
+					z = z0 + vz * t1;
+					precalcActive = false;
+					deepness++; if (deepness > 16) {
+						clr[0] += (rand() & 0x3F) / 255.0;
+						clr[1] += (rand() & 0x3F) / 255.0;
+						clr[2] += (rand() & 0x3F) / 255.0;
+						RETURN_COLOR
+					}
+					x0 = x;
+					y0 = y;
+					z0 = z;
+					vx = -rx;
+					vy = -ry;
+					vz = -rz;
+					CalcTimeBox(x0, y0, z0, vx, vy, vz, tStart, tEnd, boundsFloor);
+					tStart += 0.000000001;
+					tEnd   += 0.000000001;
+					rayFirst = tStart;
+					rayLast = tEnd;
+					if (vx > 0.0) {tmx = 1.0 / vx; tNextX = (mx + 1.0 - x0) / vx; dmx = 1;}
+					else if (vx < 0.0) {tmx = -1.0 / vx;tNextX = (mx - x0) / vx; dmx = -1;}
+					else {tNextX = LAST_T;}
+					if (vz > 0.0) {tmz = 1.0 / vz; tNextZ = (mz + 1.0 - z0) / vz; dmz = 1;}
+					else if (vz < 0.0) {tmz = -1.0 / vz; tNextZ = (mz - z0) / vz; dmz = -1;}
+					else { tNextZ = LAST_T;}
+					coneA = (vx * vx) + (vz * vz) - (vy * vy * INV_64_CONE_H_2);
+					invConeA = 1 / coneA;
+					cAp = coneA > 0.0;
+					goto noCycle;
+					//break;
+					
 				break;
 			}
 			if (tNextX < tNextZ) {
