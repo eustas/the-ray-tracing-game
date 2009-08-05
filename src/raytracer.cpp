@@ -35,6 +35,11 @@
 
 #define PORTAL_R 0.3
 
+#define DO_NOTHING 0
+#define DO_CONE    1
+#define DO_MIRROR  2
+#define DO_TORUS   3
+
 #define DIFFUSE(light)	( lensed ? \
 				((nx * lx) + (ny * ly) + (nz * lz)) : \
 				((nx * lights[light].x) + (ny * lights[light].y) + (nz * lights[light].z)) \
@@ -85,9 +90,11 @@ VEC4D lightsClr[3];
 #define MAT_SPE_PNT 4
 #define MAT_DIF_TOR 5
 #define MAT_SPE_TOR 6
+#define MAT_DIF_MIR 7
+#define MAT_SPE_MIR 2
 
 #define MAT_DIF_CON 2
-#define MAT_LAST 6
+#define MAT_LAST 7
 VEC4D materials[MAT_LAST + 1];
 
 
@@ -657,6 +664,8 @@ void InitRayTracer() {
 
 	mat = &(materials[MAT_DIF_TOR]); mat->x = 0.75; mat->y = 0.25; mat->z = 0.50;
 	mat = &(materials[MAT_SPE_TOR]); mat->x = 0.50; mat->y = 0.25; mat->z = 0.75;
+
+	mat = &(materials[MAT_DIF_MIR]); mat->x = 0.25; mat->y = 1.00; mat->z = 0.25;
 
 	memset(bFlags, 0, 128 * sizeof(int));
 	bFlags[FULL      ] = VL  | VR  | HD  | HU ;
