@@ -5,9 +5,9 @@ class CLASS_NAME {
 	number const my_z0;
 
 // solve quartic equation using either quadratic, Ferrari's or Neumark's algorithm
-int quartic(const number a, const number b, const number c, const number d, number *rts) const {
+/*int quartic(const number a, const number b, const number c, const number d, number *rts) const {
 	int k;
-/*	number roots[4];
+	number roots[4];
 	int j,nq;
 
 	number odd = (a < 0.0) ? -a : a;
@@ -27,7 +27,7 @@ int quartic(const number a, const number b, const number c, const number d, numb
 			}
 		}
 		return j;
-	}*/
+	}
 	k = (a < 0.0) ? 1 : 0;
 	k += (b < 0.0) ? k + 1 : k;
 	k += (c < 0.0) ? k + 1 : k;
@@ -51,7 +51,7 @@ int quartic(const number a, const number b, const number c, const number d, numb
 		case 15:return ferrari(a, b, c, d, rts);
 	}
 	return 0;
-}
+}*/
 
 // solve the quartic equation; method: Ferrari-Lagrange
 int ferrari(const number a, const number b, const number c, const number d, number *rts) const {
@@ -124,7 +124,7 @@ int ferrari(const number a, const number b, const number c, const number d, numb
 }
 
 // solve the quartic equation; method: Neumark
-int neumark(const number a, const number b, const number c, const number d, number *rts) const {
+/*int neumark(const number a, const number b, const number c, const number d, number *rts) const {
 	number gdisrt, hdisrt, g2, h2;
 	number v1[4], v2[4];
 
@@ -252,7 +252,7 @@ int neumark(const number a, const number b, const number c, const number d, numb
 	rts[n1 + 0] = v2[0];
 	rts[n1 + 1] = v2[1];
 	return (nquar);
-}
+}*/
 
 // solve the quadratic equation: x**2+b*x+c = 0
 int qudrtc(const number b, const number c, number *rts, const number dis) const {
@@ -400,8 +400,8 @@ restart:
 		number coneA = (vx * vx) + (vz * vz) - (vy * vy * INV_64_CONE_H_2);
 		number invConeA = 1 / coneA;
 		bool cAp = coneA > 0.0;
-		number dx, dy, dz, w, k, D, t0,t1, t2, t3, t4, tmp,temp;
-		number x,y,z, b,f,e;
+		number dx, dy, dz, w, k, D, t0,t1, t2, t3, t4, tmp,temp, tShi;
+		number x,y,z, b,f,e,x1,y1,z1;
 		int mx = (int)x0;
 		int mz = (int)z0;
 		int d;
@@ -638,11 +638,30 @@ mirrorPlane:
 					t2 = y0 + (vy * t1) - 0.5; // t2 == y
 					t3 = ((x0 + (vx * t1) - mx - .5) * wX[state]) + ((z0 + (vz * t1) - mz - .5) * wZ[state]); // t3 == x
 					tmp = ((t2 * t2) + (t3 * t3));
-					if (tmp < MIRROR_R_2) {
-						if (tmp > MIRROR_WR_2) {
-							return false;
-						}
-						// TODO: mirroring light?
+					//if (tmp < MIRROR_R_2) {if (tmp > MIRROR_WR_2) {return false;}/* TODO: mirroring light? */return false;}
+					if (tmp < MIRROR_R_2) {return false;}
+// mirror torus
+					tShi = ((mx + 0.5 - x0) * vx) + ((0.5 - y0) * vy) + ((mz + 0.5 - z0) * vz);
+					x1 = x0 + (vx * tShi); y1 = y0 + (vy * tShi); z1 = z0 + (vz * tShi);
+					t1 = x1 - mx - 0.5;
+					t2 = y1 - 0.5;
+					t3 = z1 - mz - 0.5;
+					dx = (wX[state] * t1) + (wZ[state] * t3);
+					dy = (wZ[state] * t1) - (wX[state] * t3);
+					dz = t2;
+					t1 = (wX[state] * vx) + (wZ[state] * vz);
+					t2 = (wZ[state] * vx) - (wX[state] * vz);
+					a = 2.0 * ((t1 * dx) + (vy * dz)); // r: t
+					b = a + (2.0 * t2 * dy); // l^1 : t
+					c = (dx * dx) + (dz * dz); // r: 1
+					f = c + (dy * dy) + 0.0195; // l^1: 1
+					e = (t1 * t1) + (vy * vy); // r: t^2
+					//t4 = 1.0;
+					t3 = 2.0 * b;
+					t2 = (2.0 * f) + (b * b) - (0.0784 * e);
+					t1 = (2.0 * b * f) - (0.0784 * a);
+					t0 = (f * f) - (0.0784 * c);
+					if (Solve(/*t4,*/t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {
 						return false;
 					}
 				break;
