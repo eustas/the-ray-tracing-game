@@ -14,5 +14,7 @@ set defins=/DUSE_WINTHREAD /D__TBB_TASK_CPP_DIRECTLY_INCLUDED=1 /D_WIN32 /DUNICO
 @rem /O3 /P /Qipo /fast  /Qvec- /Qprec-div- /Qprec-sqrt- /Qfast-transcendentals /Qvec-
 icl /GX %defins% /fast /nologo /MT /Fo.\ /Fe.\distr-ru\ray.exe .\src\main.cpp %librs% /link %linkopt% >build.log
 copy distr-ru\ray.exe distr-en
+copy distr\*.* distr-ru
+copy distr\*.* distr-en
 
 @rem copy build.log con
