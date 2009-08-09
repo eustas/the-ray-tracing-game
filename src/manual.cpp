@@ -9,7 +9,7 @@ void PlayManual() {
 void ManualClick() {
 	int btn = CalcManualButton();
 	subStage += btn;
-	if ((subStage < 0) || (subStage > 4)) {
+	if ((subStage < 0) || (subStage > 5)) {
 		ShowMenu();
 	}
 }

@@ -7,6 +7,7 @@
 #define FILE_MANUAL_03	L"manual03.png"
 #define FILE_MANUAL_04	L"manual04.png"
 #define FILE_MANUAL_05	L"manual05.png"
+#define FILE_MANUAL_06	L"manual06.png"
 #define FILE_PANEL	L"panel.png"
 #define FILE_BIGNUM	L"bignum.png"
 #define FILE_SMALLNUM	L"smallnum.png"
