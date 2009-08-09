@@ -13,6 +13,7 @@ void LoadAll() {
 	manual[2]	= LoadPng(FILE_MANUAL_03	, 512, 384);
 	manual[3]	= LoadPng(FILE_MANUAL_04	, 512, 384);
 	manual[4]	= LoadPng(FILE_MANUAL_05	, 512, 384);
+	manual[5]	= LoadPng(FILE_MANUAL_06	, 512, 384);
 	hiScores	= LoadPng(FILE_HISCORES		, 512, 384);
 	about		= LoadPng(FILE_ABOUT		, 512, 384);
 	panel		= LoadPng(FILE_PANEL		, 512,  64);

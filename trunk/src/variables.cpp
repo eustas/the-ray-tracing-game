@@ -37,7 +37,7 @@ BITMAPINFO bmi, mbmi;
 
 LPDWORD bits, mbits, buffer;
 LPDWORD tiles[5], unplugged, panel, gameOver, gameWin, bigNum, smallNum, status, hiScores;
-LPDWORD menu, menuHighlight, menuText, manualButtons, manual[5], objective, microFont, about;
+LPDWORD menu, menuHighlight, menuText, manualButtons, manual[6], objective, microFont, about;
 
 LPDWORD microLines[256];
 
