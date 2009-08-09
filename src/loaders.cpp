@@ -118,6 +118,12 @@ void LoadLevel(WCHAR* fileName, LEVEL* level) {
 	level->controlX = buf[0] - 'a';
 	level->controlY = buf[1] - 'a';
 
+	fgets(buf, 40, in);
+	level->maxG = buf[0] - 'a';
+	level->gBorn = buf[1] - 'a';
+	level->gSpeed = buf[2] - 'a';
+	level->gEvil = buf[3] - 'a';
+
 	fgetws(level->nextLevel, 256, in);
 
 	fclose(in);

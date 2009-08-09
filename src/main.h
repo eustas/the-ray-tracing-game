@@ -34,6 +34,12 @@ using namespace tbb;
 //#define number float
 #define number double
 
+typedef struct _GREMIN {
+	bool alive;
+	int x;
+	int y;
+} GREMLIN;
+
 typedef struct _VEC4D {
 	number x;
 	number y;
@@ -84,6 +90,10 @@ typedef struct _LEVEL {
 	int quantCount;
 	int controlX;
 	int controlY;
+	int maxG;
+	int gBorn;
+	int gSpeed;
+	int gEvil;
 	WCHAR nextLevel[256];
 } LEVEL;
 
