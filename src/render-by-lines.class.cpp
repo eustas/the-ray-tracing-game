@@ -4,56 +4,6 @@ class CLASS_NAME {
 	number const my_y0;
 	number const my_z0;
 
-// solve quartic equation using either quadratic, Ferrari's or Neumark's algorithm
-/*int quartic(const number a, const number b, const number c, const number d, number *rts) const {
-	int k;
-	number roots[4];
-	int j,nq;
-
-	number odd = (a < 0.0) ? -a : a;
-	odd += (c < 0.0) ? -c : c;
-	number even = (b < 0.0) ? -b : b;
-	even += (d < 0.0) ? -d : d;
-
-	if (odd < even * doubtol) {
-		nq = qudrtc(b, d, roots, b * b - 4.0 * d);
-		j = 0;
-		for (k = 0; k < nq; ++k) {
-			if (roots[k] > 0.0) {
-				rts[j] = sqrt(roots[k]);
-				rts[j + 1] = -rts[j];
-				++j;
-				++j;
-			}
-		}
-		return j;
-	}
-	k = (a < 0.0) ? 1 : 0;
-	k += (b < 0.0) ? k + 1 : k;
-	k += (c < 0.0) ? k + 1 : k;
-	k += (d < 0.0) ? k + 1 : k;
-	switch (k) {
-		case 0:return ferrari(a, b, c, d, rts);
-		case 1:return neumark(a, b, c, d, rts);
-		case 2:return neumark(a, b, c, d, rts);
-		case 3:return ferrari(a, b, c, d, rts);
-		case 4:return ferrari(a, b, c, d, rts);
-		case 5:return neumark(a, b, c, d, rts);
-		case 6:return ferrari(a, b, c, d, rts);
-		case 7:return ferrari(a, b, c, d, rts);
-		case 8:return neumark(a, b, c, d, rts);
-		case 9:return ferrari(a, b, c, d, rts);
-		case 10:return ferrari(a, b, c, d, rts);
-		case 11:return neumark(a, b, c, d, rts);
-		case 12:return ferrari(a, b, c, d, rts);
-		case 13:return ferrari(a, b, c, d, rts);
-		case 14:return ferrari(a, b, c, d, rts);
-		case 15:return ferrari(a, b, c, d, rts);
-	}
-	return 0;
-}*/
-
-// solve the quartic equation; method: Ferrari-Lagrange
 int ferrari(const number a, const number b, const number c, const number d, number *rts) const {
 	number v1[4], v2[4], e, f, h, hh;
 
@@ -82,9 +32,7 @@ int ferrari(const number a, const number b, const number c, const number d, numb
 		} else {
 			e = sqrt(esq);
 			f = sqrt(fsq);
-			if (ef < 0.0) {
-				f = -f;
-			}
+			if (ef < 0.0) {f = -f;}
 		}
 	} else {
 		e = sqrt(esq);
@@ -123,138 +71,6 @@ int ferrari(const number a, const number b, const number c, const number d, numb
 	return nquar;
 }
 
-// solve the quartic equation; method: Neumark
-/*int neumark(const number a, const number b, const number c, const number d, number *rts) const {
-	number gdisrt, hdisrt, g2, h2;
-	number v1[4], v2[4];
-
-	number asq = a * a;
-
-	number p = -b * 2.0;
-	number q = b * b + a * c - 4.0 * d;
-	number r = (c - a * b) * c + asq * d;
-	number y = cubic(p, q, r);
-
-	number bmy = b - y;
-	number y4 = y * 4.0;
-	number d4 = d * 4.0;
-	number bmysq = bmy * bmy;
-	number gdis = asq - y4;
-	number hdis = bmysq - d4;
-	if ((gdis < 0.0) || (hdis < 0.0)) {
-		return (0);
-	}
-
-	number g1 = a * 0.5;
-	number h1 = bmy * 0.5;
-	number gerr = asq + y4;
-	number herr = hdis;
-	if (d > 0.0) {
-		herr = bmysq + d4;
-	}
-
-	if ((y < 0.0) || (herr * gdis > gerr * hdis)) {
-		gdisrt = sqrt(gdis);
-		g2 = gdisrt * 0.5;
-		if (gdisrt != 0.0) {
-			h2 = (a * h1 - c) / gdisrt;
-		} else {
-			h2 = 0.0;
-		}
-	} else {
-		hdisrt = sqrt(hdis);
-		h2 = hdisrt * 0.5;
-		if (hdisrt != 0.0) {
-			g2 = (a * h1 - c) / hdisrt;
-		} else {
-			g2 = 0.0;
-		}
-	}
-	number h = h1 - h2;
-	number hh = h1 + h2;
-	number hmax = hh;
-	if (hmax < 0.0) {
-		hmax = -hmax;
-	}
-	if (hmax < h) {
-		hmax = h;
-	}
-	if (hmax < -h) {
-		hmax = -h;
-	}
-	if ((h1 > 0.0) && (h2 > 0.0)) {
-		h = d / hh;
-	}
-	if ((h1 < 0.0) && (h2 < 0.0)) {
-		h = d / hh;
-	}
-	if ((h1 > 0.0) && (h2 < 0.0)) {
-		hh = d / h;
-	}
-	if ((h1 < 0.0) && (h2 > 0.0)) {
-		hh = d / h;
-	}
-	if (h > hmax) {
-		h = hmax;
-	}
-	if (h < -hmax) {
-		h = -hmax;
-	}
-	if (hh > hmax) {
-		hh = hmax;
-	}
-	if (hh < -hmax) {
-		hh = -hmax;
-	}
-
-	number g = g1 - g2;
-	number gg = g1 + g2;
-	number gmax = gg;
-	if (gmax < 0.0) {
-		gmax = -gmax;
-	}
-	if (gmax < g) {
-		gmax = g;
-	}
-	if (gmax < -g) {
-		gmax = -g;
-	}
-	if ((g1 > 0.0) && (g2 > 0.0)) {
-		g = y / gg;
-	}
-	if ((g1 < 0.0) && (g2 < 0.0)) {
-		g = y / gg;
-	}
-	if ((g1 > 0.0) && (g2 < 0.0)) {
-		gg = y / g;
-	}
-	if ((g1 < 0.0) && (g2 > 0.0)) {
-		gg = y / g;
-	}
-	if (g > gmax) {
-		g = gmax;
-	}
-	if (g < -gmax) {
-		g = -gmax;
-	}
-	if (gg > gmax) {
-		gg = gmax;
-	}
-	if (gg < -gmax) {
-		gg = -gmax;
-	}
-
-	int n1 = qudrtc(gg, hh, v1, gg * gg - 4.0 * hh);
-	int n2 = qudrtc(g, h, v2, g * g - 4.0 * h);
-	int nquar = n1 + n2;
-	rts[0] = v1[0];
-	rts[1] = v1[1];
-	rts[n1 + 0] = v2[0];
-	rts[n1 + 1] = v2[1];
-	return (nquar);
-}*/
-
-// solve the quadratic equation: x**2+b*x+c = 0
 int qudrtc(const number b, const number c, number *rts, const number dis) const {
 	if (dis >= 0.0) {
 		number rtdis = sqrt(dis);
@@ -287,13 +103,9 @@ number cubic(const number p, const number q, const number r) const {
 
 	number m = 0.0;
 	int nrts = 0;
-	if ((p > doubmax) || (p < -doubmax)) {
-		return -p;
-	}
+	if ((p > doubmax) || (p < -doubmax)) {return -p;}
 	if ((q > doubmax) || (q < -doubmax)) {
-		if (q > 0.0) {
-			return -r / q;
-		}
+		if (q > 0.0) {return -r / q;}
 		return -sqrt(-q);
 	}
 	if ((r > doubmax) || (r < -doubmax)) {
@@ -303,9 +115,7 @@ number cubic(const number p, const number q, const number r) const {
 	}
 	po3 = p * 0.3333333333333333333333333333333333333333333333;
 	po3sq = po3 * po3;
-	if (po3sq > doubmax) {
-		return -p;
-	}
+	if (po3sq > doubmax) {return -p;}
 	v = r + po3 * (po3sq + po3sq - q);
 	if ((v > doubmax) || (v < -doubmax)) {
 		return -p;
@@ -328,7 +138,6 @@ number cubic(const number p, const number q, const number r) const {
 	uo3sq4 = u2o3 * u2o3;
 	if (uo3sq4 > doubmax) {
 		if (p == 0.0) {
-		
 			if (q > 0.0) {
 				root = -r / q;
 			} else {
@@ -367,24 +176,15 @@ number cubic(const number p, const number q, const number r) const {
 }
 
 
-//	bool Solve(const number A, const number B,const number C,const number D,const number E,const number tStart,const number tEnd, number &result) const {
-//		if (A == 0.0) {return false; /* todo: cordano */}
-//		number a = B / A;
-//		number b = C / A;
-//		number c = D / A;
-//		number d = E / A;
 	bool Solve(const number a, const number b,const number c,const number d,const number tStart,const number tEnd, number &result) const {
 		result = LAST_T;
 
 		number rts[4];
-		//int sol = quartic(a, b, c, d, rts);
 		int sol = ferrari(a, b, c, d, rts);
-		//int sol = neumark(a, b, c, d, rts);
 		for (int i = 0; i < sol; i++) {
 			double s = rts[i];
 			if ((s < result) && (s > tStart) && (s < tEnd)) {result = s;}
 		}
-//		if ((tStart > 1.0)&&(sol>0)&&(result == LAST_T)){fwprintf_s(debugFile,L"%d (%f %f %f %f %f) [%f %f %f %f] {%f %f}\n",sol,A,B,C,D,E,rts[0],rts[1],rts[2],rts[3],tStart,tEnd);}
 		return result < LAST_T;
 	}
 
@@ -395,7 +195,7 @@ number cubic(const number p, const number q, const number r) const {
 		number vy = lights[light].y;
 		number vz = lights[light].z;
 		number wx,wy,wz;
-		number sx,sy,sz, coneC,econeA,einvConeA,a,c,cox;
+		number sx,sy,sz, coneC,econeA,einvConeA,a,c,cox,coz;
 restart:
 		number coneA = (vx * vx) + (vz * vz) - (vy * vy * INV_64_CONE_H_2);
 		number invConeA = 1 / coneA;
@@ -460,10 +260,639 @@ restart:
 					if (((int)(((vx * vy) + (vy * vz) + (vz * vx) + x0 + y0 + z0) * (65536 + subFrame)) & 0xFF) > 0x80) {return false;}
 					break;
 
+				case COLLECTOR:
+tShi = ((mx + 0.5 - x0) * vx) + ((0.5 - y0) * vy) + ((mz + 0.5 - z0) * vz);
+x1 = x0 + (vx * tShi); y1 = y0 + (vy * tShi); z1 = z0 + (vz * tShi);
+					if (state == 0) {
+
+dx = x1 - mx - 0.03;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (dx * dx) + 0.0216; // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.09 * e);
+t1 = (2.0 * b * f) - (0.09 * a);
+t0 = (f * f) - (0.09 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto coll1;}
+return false;
+  
+coll1:
+dx = x1 - mx - 0.3;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (0.04 * 2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (0.04 * dx * dx) + 0.0084; // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+temp = e + (vx * vx * 0.04);
+t3 = 2.0 * b * temp;
+t2 = (2.0 * temp * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+temp = 1 / (temp * temp);
+if (!Solve(temp * t3,temp * t2,temp * t1,temp * t0, tStart - tShi, tEnd - tShi, tmp)) {goto coll2;}
+return false;
+
+coll2:
+dx = x1 - mx - 0.6;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (dx * dx); // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto coll3;}
+return false;
+
+coll3:
+a = (vx * vx * 1.44) + (vy * vy) + (vz * vz);
+x = mx + 0.9 - x0;
+y = 0.5 - y0;
+z = mz + 0.5 - z0;
+k = (1.44 * x * vx) + (y * vy) + (z * vz);
+c = (1.44 * x * x) + (y * y) + (z * z) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto coll4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto coll4;}
+t1 = t1 - 0.0001;
+cox = x0 + vx * t1;
+if (cox > (mx + 1.0)) { goto coll4;}
+return false;
+coll4:
+if (vx == 0.0) {break;}
+t1 = (mx + 1.0 - x0) / vx + 0.000001;
+if (t1 < rayFirst) {break;}
+y = y0 + vy * t1 - 0.5;
+z = z0 + vz * t1 - mz - 0.5;
+t2 = (y * y) + (z * z);
+if (t2 > CUT_EMI_R_2) {break;}
+return false;
+
+					} else if (state == 1) {
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.03;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (dz * dz) + 0.0216; // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.09 * e);
+t1 = (2.0 * b * f) - (0.09 * a);
+t0 = (f * f) - (0.09 * c);
+if (Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {return false;}  
+colu1:
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.3;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (0.04 * 2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (0.04 * dz * dz) + 0.0084; // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+temp = e + (vz * vz * 0.04);
+t3 = 2.0 * b * temp;
+t2 = (2.0 * temp * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+temp = 1 / (temp * temp);
+if (Solve(temp * t3,temp * t2,temp * t1,temp * t0, tStart - tShi, tEnd - tShi, tmp)) {return false;}
+colu2:
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.60;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (dz * dz); // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+if (Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {return false;}
+colu3:
+a = (vz * vz * 1.44) + (vy * vy) + (vx * vx);
+z = mz + 0.9 - z0;
+y = 0.5 - y0;
+x = mx + 0.5 - x0;
+k = (1.44 * z * vz) + (y * vy) + (x * vx);
+c = (1.44 * z * z) + (y * y) + (x * x) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto colu4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto colu4;}
+t1 = t1 - 0.0001;
+coz = z0 + vz * t1;
+if (coz > (mz + 1.0)) { goto colu4;}
+return false;
+colu4:
+if (vz == 0.0) {break;}
+t1 = (mz + 1.0 - z0) / vz + 0.000001;
+if (t1 < rayFirst) {break;}
+y = y0 + vy * t1 - 0.5;
+x = x0 + vx * t1 - mx - 0.5;
+t2 = (y * y) + (x * x);
+if (t2 > CUT_EMI_R_2) {break;}
+return false;
+					} else if (state == 2) {
+dx = x1 - mx - 0.97;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (dx * dx) + 0.0216; // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.09 * e);
+t1 = (2.0 * b * f) - (0.09 * a);
+t0 = (f * f) - (0.09 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto colr1;}
+return false;  
+colr1:
+dx = x1 - mx - 0.7;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (0.04 * 2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (0.04 * dx * dx) + 0.0084; // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+temp = e + (vx * vx * 0.04);
+t3 = 2.0 * b * temp;
+t2 = (2.0 * temp * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+temp = 1 / (temp * temp);
+if (!Solve(temp * t3,temp * t2,temp * t1,temp * t0, tStart - tShi, tEnd - tShi, tmp)) {goto colr2;}
+return false;
+colr2:
+dx = x1 - mx - 0.4;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (dx * dx); // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto colr3;}
+return false;
+colr3:
+a = (vx * vx * 1.44) + (vy * vy) + (vz * vz);
+x = mx + 0.1 - x0;
+y = 0.5 - y0;
+z = mz + 0.5 - z0;
+k = (1.44 * x * vx) + (y * vy) + (z * vz);
+c = (1.44 * x * x) + (y * y) + (z * z) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto colr4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto colr4;}
+t1 = t1 - 0.0001;
+cox = x0 + vx * t1;
+if (cox < mx) { goto colr4;}
+return false;
+colr4:
+if (vx == 0.0) {break;}
+t1 = (mx - x0) / vx + 0.000001;
+if (t1 + 0.00002 < rayFirst) {break;}
+y = y0 + vy * t1 - 0.5;
+z = z0 + vz * t1 - mz - 0.5;
+t2 = (y * y) + (z * z);
+if (t2 > CUT_EMI_R_2) {break;}
+return false;
+					} else if (state == 3) {
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.97;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (dz * dz) + 0.0216; // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.09 * e);
+t1 = (2.0 * b * f) - (0.09 * a);
+t0 = (f * f) - (0.09 * c);
+if (Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {return false;}  
+cold1:
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.7;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (0.04 * 2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (0.04 * dz * dz) + 0.0084; // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+temp = e + (vz * vz * 0.04);
+t3 = 2.0 * b * temp;
+t2 = (2.0 * temp * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+temp = 1 / (temp * temp);
+if (Solve(temp * t3,temp * t2,temp * t1,temp * t0, tStart - tShi, tEnd - tShi, tmp)) {return false;}
+cold2:
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.40;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (dz * dz); // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+if (Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {return false;}
+cold3:
+a = (vz * vz * 1.44) + (vy * vy) + (vx * vx);
+z = mz + 0.1 - z0;
+y = 0.5 - y0;
+x = mx + 0.5 - x0;
+k = (1.44 * z * vz) + (y * vy) + (x * vx);
+c = (1.44 * z * z) + (y * y) + (x * x) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto cold4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto cold4;}
+t1 = t1 - 0.0001;
+coz = z0 + vz * t1;
+if (coz < mz) { goto cold4;}
+return false;
+cold4:
+if (vz == 0.0) {break;}
+t1 = (mz - z0) / vz + 0.000001;
+if (t1 + 0.00002 < rayFirst) {break;}
+y = y0 + vy * t1 - 0.5;
+x = x0 + vx * t1 - mx - 0.5;
+t2 = (y * y) + (x * x);
+if (t2 > CUT_EMI_R_2) {break;}
+return false;
+
+					}
+					break;
 
 				case EMITTER:
 					if (state == 0) {
-#include"emi_l_c.cpp"
+//#include"emi_l_c.cpp"
+sx = mx - 0.1 - x0;
+sy = 0.5 - y0;
+sz = (0.5 + mz) - z0;
+k = (sy * vy) + (sz * vz) - (sx * vx * E_INV_16_CONE_H_2);
+coneC = (sy * sy) + (sz * sz) - (sx * sx * E_INV_16_CONE_H_2);
+econeA = (vy * vy) + (vz * vz) - (vx * vx * E_INV_16_CONE_H_2);
+D = k * k - econeA * coneC;
+einvConeA = 1 / econeA;
+if (D <= 0.0) { goto emil1; }
+D = sqrt(D);
+if (econeA > 0.0) {
+	t1 = (k - D) * einvConeA;
+	t2 = (k + D) * einvConeA;
+} else {
+	t2 = (k - D) * einvConeA;
+	t1 = (k + D) * einvConeA;
+}
+x = (mx + 1.0 - 0.1) - (x0 + (vx * t1));
+if (x > E_CONE_H - 0.1) {
+	x = (mx + 1.0 - 0.1) - (x0 + (vx * t2));
+	if (x > E_CONE_H - 0.1) { goto emil1; }
+	t1 = t2;
+}
+if (x < 0.1) { goto emil1; }
+if (t1 < rayFirst) {goto emil1;}
+tmp = E_CONE_YR_P - (E_CONE_YR_Y * x); // tmp == r
+if (tmp <= 0.0) {goto emil1;}
+return false;
+emil1:
+if (vx == 0.0) {goto emil2;}
+t1 = (mx - x0) / vx;
+if (t1 < rayFirst) {goto emil2;}
+y = y0 + vy * t1 - 0.5;
+z = z0 + vz * t1 - mz - 0.5;
+t2 = (y * y) + (z * z);
+if (t2 > RAY_R_2) {goto emil2;}
+return false;
+emil2:
+a = (vx * vx * 16.0) + (vy * vy) + (vz * vz);
+x = mx + 0.25 - x0;
+y = 0.5 - y0;
+z = mz + 0.5 - z0;
+k = (16.0 * x * vx) + (y * vy) + (z * vz);
+c = (16.0 * x * x) + (y * y) + (z * z) - 0.04;
+D = k * k - a * c;
+if (D < 0.0) {goto emil3;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto emil3;}
+return false;
+emil3:
+a = (vx * vx * 1.44) + (vy * vy) + (vz * vz);
+x = mx + 0.9 - x0;
+y = 0.5 - y0;
+z = mz + 0.5 - z0;
+k = (1.44 * x * vx) + (y * vy) + (z * vz);
+c = (1.44 * x * x) + (y * y) + (z * z) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto emil4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto emil4;}
+t1 = t1 - 0.0001;
+cox = x0 + vx * t1;
+if (cox > (mx + 1.0)) { goto emil4;}
+return false;
+emil4:
+if (vx == 0.0) {break;}
+t1 = (mx + 1.0 - x0) / vx;
+if (t1 < rayFirst) {break;}
+y = y0 + vy * t1 - 0.5;
+z = z0 + vz * t1 - mz - 0.5;
+t2 = (y * y) + (z * z);
+if (t2 > CUT_EMI_R_2) {break;}
+return false;
+
+					} else if (state == 1) {
+//#include<emi_u_p.cpp>
+sz = mz - 0.1 - z0;
+sy = 0.5 - y0;
+sx = (0.5 + mx) - x0;
+k = (sy * vy) + (sx * vx) - (sz * vz * E_INV_16_CONE_H_2);
+coneC = (sy * sy) + (sx * sx) - (sz * sz * E_INV_16_CONE_H_2);
+econeA = (vy * vy) + (vx * vx) - (vz * vz * E_INV_16_CONE_H_2);
+D = k * k - econeA * coneC;
+einvConeA = 1 / econeA;
+if (D <= 0.0) { goto emiu1; }
+D = sqrt(D);
+if (econeA > 0.0) {
+	t1 = (k - D) * einvConeA;
+	t2 = (k + D) * einvConeA;
+} else {
+	t2 = (k - D) * einvConeA;
+	t1 = (k + D) * einvConeA;
+}
+z = (mz + 1.0 - 0.1) - (z0 + (vz * t1));
+if (z > E_CONE_H - 0.1) {
+	z = (mz + 1.0 - 0.1) - (z0 + (vz * t2));
+	if (z > E_CONE_H - 0.1) { goto emiu1; }
+	t1 = t2;
+}
+if (z < 0.1) { goto emiu1; }
+if (t1 < rayFirst) {goto emiu1;}
+tmp = E_CONE_YR_P - (E_CONE_YR_Y * z); // tmp == r
+if (tmp <= 0.0) {goto emiu1;}
+return false;
+emiu1:
+if (vz == 0.0) {goto emiu2;}
+t1 = (mz - z0) / vz;
+if (t1 < rayFirst) {goto emiu2;}
+y = y0 + vy * t1 - 0.5;
+x = x0 + vx * t1 - mx - 0.5;
+t2 = (y * y) + (x * x);
+if (t2 > RAY_R_2) {goto emiu2;}
+return false;
+emiu2:
+a = (vz * vz * 16.0) + (vy * vy) + (vx * vx);
+z = mz + 0.25 - z0;
+y = 0.5 - y0;
+x = mx + 0.5 - x0;
+k = (16.0 * z * vz) + (y * vy) + (x * vx);
+c = (16.0 * z * z) + (y * y) + (x * x) - 0.04;
+D = k * k - a * c;
+if (D < 0.0) {goto emiu3;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto emiu3;}
+return false;
+emiu3:
+a = (vz * vz * 1.44) + (vy * vy) + (vx * vx);
+z = mz + 0.9 - z0;
+y = 0.5 - y0;
+x = mx + 0.5 - x0;
+k = (1.44 * z * vz) + (y * vy) + (x * vx);
+c = (1.44 * z * z) + (y * y) + (x * x) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto emiu4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto emiu4;}
+t1 = t1 - 0.0001;
+coz = z0 + vz * t1;
+if (coz > (mz + 1.0)) { goto emiu4;}
+return false;
+emiu4:
+if (vz == 0.0) {break;}
+t1 = (mz + 1.0 - z0) / vz;
+if (t1 < rayFirst) {break;}
+y = y0 + vy * t1 - 0.5;
+x = x0 + vx * t1 - mx - 0.5;
+t2 = (y * y) + (x * x);
+if (t2 > CUT_EMI_R_2) {break;}
+return false;
+
+					} else if (state == 2) {
+//#include<emi_r_p.cpp>
+sx = mx + 1.1 - x0;
+sy = 0.5 - y0;
+sz = (0.5 + mz) - z0;
+k = (sy * vy) + (sz * vz) - (sx * vx * E_INV_16_CONE_H_2);
+coneC = (sy * sy) + (sz * sz) - (sx * sx * E_INV_16_CONE_H_2);
+econeA = (vy * vy) + (vz * vz) - (vx * vx * E_INV_16_CONE_H_2);
+D = k * k - econeA * coneC;
+einvConeA = 1 / econeA;
+if (D <= 0.0) { goto emir1; }
+D = sqrt(D);
+if (econeA > 0.0) {
+	t1 = (k - D) * einvConeA;
+	t2 = (k + D) * einvConeA;
+} else {
+	t2 = (k - D) * einvConeA;
+	t1 = (k + D) * einvConeA;
+}
+x = (mx + 0.1) - (x0 + (vx * t1));
+if (x < -E_CONE_H + 0.1) {
+	x = (mx + 0.1) - (x0 + (vx * t2));
+	if (x < -E_CONE_H + 0.1) { goto emir1; }
+	t1 = t2;
+}
+x = -x;
+if (x < 0.1) { goto emir1; }
+if (t1 < rayFirst) {goto emir1;}
+tmp = E_CONE_YR_P - (E_CONE_YR_Y * x); // tmp == r
+if (tmp <= 0.0) {goto emir1;}
+return false;
+emir1:
+if (vx == 0.0) {goto emir2;}
+t1 = (mx + 1.0 - x0) / vx;
+if (t1 < rayFirst) {goto emir2;}
+y = y0 + vy * t1 - 0.5;
+z = z0 + vz * t1 - mz - 0.5;
+t2 = (y * y) + (z * z);
+if (t2 > RAY_R_2) {goto emir2;}
+return false;
+emir2:
+a = (vx * vx * 16.0) + (vy * vy) + (vz * vz);
+x = mx + 0.75 - x0;
+y = 0.5 - y0;
+z = mz + 0.5 - z0;
+k = (16.0 * x * vx) + (y * vy) + (z * vz);
+c = (16.0 * x * x) + (y * y) + (z * z) - 0.04;
+D = k * k - a * c;
+if (D < 0.0) {goto emir3;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto emir3;}
+return false;
+emir3:
+a = (vx * vx * 1.44) + (vy * vy) + (vz * vz);
+x = mx + 0.1 - x0;
+y = 0.5 - y0;
+z = mz + 0.5 - z0;
+k = (1.44 * x * vx) + (y * vy) + (z * vz);
+c = (1.44 * x * x) + (y * y) + (z * z) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto emir4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto emir4;}
+t1 = t1 - 0.0001;
+cox = x0 + vx * t1;
+if (cox < mx) { goto emir4;}
+return false;
+emir4:
+if (vx == 0.0) {break;}
+t1 = (mx - x0) / vx;
+if (t1 + 0.00002 < rayFirst) {break;}
+y = y0 + vy * t1 - 0.5;
+z = z0 + vz * t1 - mz - 0.5;
+t2 = (y * y) + (z * z);
+if (t2 > CUT_EMI_R_2) {break;}
+return false;
+
+					} else if (state == 3) {
+//#include<emi_d_p.cpp>
+sz = mz + 1.1 - z0;
+sy = 0.5 - y0;
+sx = (0.5 + mx) - x0;
+k = (sy * vy) + (sx * vx) - (sz * vz * E_INV_16_CONE_H_2);
+coneC = (sy * sy) + (sx * sx) - (sz * sz * E_INV_16_CONE_H_2);
+econeA = (vy * vy) + (vx * vx) - (vz * vz * E_INV_16_CONE_H_2);
+D = k * k - econeA * coneC;
+einvConeA = 1 / econeA;
+if (D <= 0.0) { goto emid1; }
+D = sqrt(D);
+if (econeA > 0.0) {
+	t1 = (k - D) * einvConeA;
+	t2 = (k + D) * einvConeA;
+} else {
+	t2 = (k - D) * einvConeA;
+	t1 = (k + D) * einvConeA;
+}
+z = (mz + 0.1) - (z0 + (vz * t1));
+if (z < -E_CONE_H + 0.1) {
+	z = (mz + 0.1) - (z0 + (vz * t2));
+	if (z < -E_CONE_H + 0.1) { goto emid1; }
+	t1 = t2;
+}
+z = -z;
+if (z < 0.1) { goto emid1; }
+if (t1 < rayFirst) {goto emid1;}
+tmp = E_CONE_YR_P - (E_CONE_YR_Y * z); // tmp == r
+if (tmp <= 0.0) {goto emid1;}
+return false;
+emid1:
+if (vz == 0.0) {goto emid2;}
+t1 = (mz + 1.0 - z0) / vz;
+if (t1 < rayFirst) {goto emid2;}
+y = y0 + vy * t1 - 0.5;
+x = x0 + vx * t1 - mx - 0.5;
+t2 = (y * y) + (x * x);
+if (t2 > RAY_R_2) {goto emid2;}
+return false;
+emid2:
+a = (vz * vz * 16.0) + (vy * vy) + (vx * vx);
+z = mz + 0.75 - z0;
+y = 0.5 - y0;
+x = mx + 0.5 - x0;
+k = (16.0 * z * vz) + (y * vy) + (x * vx);
+c = (16.0 * z * z) + (y * y) + (x * x) - 0.04;
+D = k * k - a * c;
+if (D < 0.0) {goto emid3;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto emid3;}
+return false;
+emid3:
+a = (vz * vz * 1.44) + (vy * vy) + (vx * vx);
+z = mz + 0.1 - z0;
+y = 0.5 - y0;
+x = mx + 0.5 - x0;
+k = (1.44 * z * vz) + (y * vy) + (x * vx);
+c = (1.44 * z * z) + (y * y) + (x * x) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto emid4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto emid4;}
+t1 = t1 - 0.0001;
+coz = z0 + vz * t1;
+if (coz < mz) { goto emid4;}
+return false;
+emid4:
+if (vz == 0.0) {break;}
+t1 = (mz - z0) / vz;
+if (t1 + 0.00002 < rayFirst) {break;}
+y = y0 + vy * t1 - 0.5;
+x = x0 + vx * t1 - mx - 0.5;
+t2 = (y * y) + (x * x);
+if (t2 > CUT_EMI_R_2) {break;}
+return false;
+
 					}
 					break;
 
@@ -1100,7 +1529,6 @@ portalTorusC:
 					if (temp < tmp) {goto portalPortal;}
 //portalTorus
 					t1 = tmp;
-// TODO: t2 = t1 - 0.000001;
 					t2 = t1 - 0.000001;
 					x = x0 + (vx * t2);
 					y = y0 + (vy * t2);
@@ -1364,6 +1792,642 @@ fullReflect:
 					}
 				break;
 
+				case COLLECTOR:
+					tResult = LAST_T;
+tShi = ((mx + 0.5 - x0) * vx) + ((0.5 - y0) * vy) + ((mz + 0.5 - z0) * vz);
+x1 = x0 + (vx * tShi); y1 = y0 + (vy * tShi); z1 = z0 + (vz * tShi);
+
+					if (state == 0) {
+dx = x1 - mx - 0.03;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (dx * dx) + 0.0216; // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.09 * e);
+t1 = (2.0 * b * f) - (0.09 * a);
+t0 = (f * f) - (0.09 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto coll1;}
+tmp = tmp + tShi;
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.03;
+dy = coy - 0.5;
+dz = coz - mz - 0.5;
+f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.0234);
+nx = dx * (f + 0.18);
+ny = dy * f;
+nz = dz * f;
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+  
+coll1:
+dx = x1 - mx - 0.3;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (0.04 * 2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (0.04 * dx * dx) + 0.0084; // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+temp = e + (vx * vx * 0.04);
+t3 = 2.0 * b * temp;
+t2 = (2.0 * temp * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+temp = 1 / (temp * temp);
+if (!Solve(temp * t3,temp * t2,temp * t1,temp * t0, tStart - tShi, tEnd - tShi, tmp)) {goto coll2;}
+tmp = tmp + tShi;
+if (tmp > tResult) {goto coll2;}
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.3;
+dy = coy - 0.5;
+dz = coz - mz - 0.5;
+f = 4.0 * ((dz * dz) + (dy * dy) + (0.04 * dx * dx) - 0.0116);
+nx = 0.2 * dx * (f + 0.08);
+ny = dy * f;
+nz = dz * f;
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+
+coll2:
+dx = x1 - mx - 0.6;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (dx * dx); // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto coll3;}
+tmp = tmp + tShi;
+if (tmp > tResult) {goto coll3;}
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.6;
+dy = coy - 0.5;
+dz = coz - mz - 0.5;
+f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.02);
+nx = dx * (f + 0.08);
+ny = dy * f;
+nz = dz * f;
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+
+coll3:
+a = (vx * vx * 1.44) + (vy * vy) + (vz * vz);
+x = mx + 0.9 - x0;
+y = 0.5 - y0;
+z = mz + 0.5 - z0;
+k = (1.44 * x * vx) + (y * vy) + (z * vz);
+c = (1.44 * x * x) + (y * y) + (z * z) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto coll4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto coll4;}
+if (t1 > tResult) {goto coll4;}
+t1 = t1 - 0.0001;
+cox = x0 + vx * t1;
+if (cox > (mx + 1.0)) { goto coll4;}
+coy = y0 + vy * t1;
+coz = z0 + vz * t1;
+conx = 3.333333333333333333 * 1.2 * (cox - mx - 0.9);
+cony = 3.333333333333333333 * (coy - 0.5);
+conz = 3.333333333333333333 * (coz - 0.5 - mz);
+cot = t1;
+tResult = t1;
+coll4:
+if (vx == 0.0) {goto col5;}
+t1 = (mx + 1.0 - x0) / vx + 0.000001;
+if (t1 < rayFirst) {goto col5;}
+if (t1 > tResult) {goto col5;}
+y = y0 + vy * t1 - 0.5;
+z = z0 + vz * t1 - mz - 0.5;
+t2 = (y * y) + (z * z);
+if (t2 > CUT_EMI_R_2) {goto col5;}
+t1 = t1 - 0.0001;
+cox = x0 + vx * t1;
+coy = y0 + vy * t1;
+coz = z0 + vz * t1;
+conx = 1.0;
+cony = 0.0;
+conz = 0.0;
+cot = t1;
+tResult = t1;
+
+					} else if (state == 1) {
+
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.03;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (dz * dz) + 0.0216; // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.09 * e);
+t1 = (2.0 * b * f) - (0.09 * a);
+t0 = (f * f) - (0.09 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto colu1;}
+tmp = tmp + tShi;
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.5;
+dy = coy - 0.5;
+dz = coz - mz - 0.03;
+f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.0234);
+nx = dx * f;
+ny = dy * f;
+nz = dz * (f + 0.18);
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+  
+colu1:
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.3;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (0.04 * 2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (0.04 * dz * dz) + 0.0084; // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+temp = e + (vz * vz * 0.04);
+t3 = 2.0 * b * temp;
+t2 = (2.0 * temp * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+temp = 1 / (temp * temp);
+if (!Solve(temp * t3,temp * t2,temp * t1,temp * t0, tStart - tShi, tEnd - tShi, tmp)) {goto colu2;}
+tmp = tmp + tShi;
+if (tmp > tResult) {goto colu2;}
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.5;
+dy = coy - 0.5;
+dz = coz - mz - 0.3;
+f = 4.0 * ((dx * dx) + (dy * dy) + (0.04 * dz * dz) - 0.0116);
+nx = dx * f;
+ny = dy * f;
+nz = 0.2 * dz * (f + 0.08);
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+
+colu2:
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.60;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (dz * dz); // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto colu3;}
+tmp = tmp + tShi;
+if (tmp > tResult) {goto colu3;}
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.5;
+dy = coy - 0.5;
+dz = coz - mz - 0.60;
+f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.02);
+nx = dx * f;
+ny = dy * f;
+nz = dz * (f + 0.08);
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+
+colu3:
+a = (vz * vz * 1.44) + (vy * vy) + (vx * vx);
+z = mz + 0.9 - z0;
+y = 0.5 - y0;
+x = mx + 0.5 - x0;
+k = (1.44 * z * vz) + (y * vy) + (x * vx);
+c = (1.44 * z * z) + (y * y) + (x * x) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto colu4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto colu4;}
+if (t1 > tResult) {goto colu4;}
+t1 = t1 - 0.0001;
+coz = z0 + vz * t1;
+if (coz > (mz + 1.0)) { goto colu4;}
+coy = y0 + vy * t1;
+cox = x0 + vx * t1;
+conz = 3.333333333333333333 * 1.2 * (coz - mz - 0.9);
+cony = 3.333333333333333333 * (coy - 0.5);
+conx = 3.333333333333333333 * (cox - 0.5 - mx);
+cot = t1;
+tResult = t1;
+colu4:
+if (vz == 0.0) {goto col5;}
+t1 = (mz + 1.0 - z0) / vz + 0.000001;
+if (t1 < rayFirst) {goto col5;}
+if (t1 > tResult) {goto col5;}
+y = y0 + vy * t1 - 0.5;
+x = x0 + vx * t1 - mx - 0.5;
+t2 = (y * y) + (x * x);
+if (t2 > CUT_EMI_R_2) {goto col5;}
+t1 = t1 - 0.0001;
+coz = z0 + vz * t1;
+coy = y0 + vy * t1;
+cox = x0 + vx * t1;
+conz = 1.0;
+cony = 0.0;
+conx = 0.0;
+cot = t1;
+tResult = t1;
+
+					} else if (state == 2) {
+
+dx = x1 - mx - 0.97;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (dx * dx) + 0.0216; // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.09 * e);
+t1 = (2.0 * b * f) - (0.09 * a);
+t0 = (f * f) - (0.09 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto colr1;}
+tmp = tmp + tShi;
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.97;
+dy = coy - 0.5;
+dz = coz - mz - 0.5;
+f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.0234);
+nx = dx * (f + 0.18);
+ny = dy * f;
+nz = dz * f;
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+  
+colr1:
+dx = x1 - mx - 0.7;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (0.04 * 2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (0.04 * dx * dx) + 0.0084; // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+temp = e + (vx * vx * 0.04);
+t3 = 2.0 * b * temp;
+t2 = (2.0 * temp * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+temp = 1 / (temp * temp);
+if (!Solve(temp * t3,temp * t2,temp * t1,temp * t0, tStart - tShi, tEnd - tShi, tmp)) {goto colr2;}
+tmp = tmp + tShi;
+if (tmp > tResult) {goto colr2;}
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.7;
+dy = coy - 0.5;
+dz = coz - mz - 0.5;
+f = 4.0 * ((dz * dz) + (dy * dy) + (0.04 * dx * dx) - 0.0116);
+nx = 0.2 * dx * (f + 0.08);
+ny = dy * f;
+nz = dz * f;
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+
+colr2:
+dx = x1 - mx - 0.4;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.5;
+a = 2.0 * ((vz * dz) + (vy * dy)); // r: t
+b = a + (2.0 * vx * dx); // l^1 : t
+c = (dz * dz) + (dy * dy); // r: 1
+f = c + (dx * dx); // l^1: 1
+e = (vz * vz) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto colr3;}
+tmp = tmp + tShi;
+if (tmp > tResult) {goto colr3;}
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.4;
+dy = coy - 0.5;
+dz = coz - mz - 0.5;
+f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.02);
+nx = dx * (f + 0.08);
+ny = dy * f;
+nz = dz * f;
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+
+colr3:
+a = (vx * vx * 1.44) + (vy * vy) + (vz * vz);
+x = mx + 0.1 - x0;
+y = 0.5 - y0;
+z = mz + 0.5 - z0;
+k = (1.44 * x * vx) + (y * vy) + (z * vz);
+c = (1.44 * x * x) + (y * y) + (z * z) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto colr4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto colr4;}
+if (t1 > tResult) {goto colr4;}
+t1 = t1 - 0.0001;
+cox = x0 + vx * t1;
+if (cox < mx) { goto colr4;}
+coy = y0 + vy * t1;
+coz = z0 + vz * t1;
+conx = 3.333333333333333333 * 1.2 * (cox - mx - 0.1);
+cony = 3.333333333333333333 * (coy - 0.5);
+conz = 3.333333333333333333 * (coz - 0.5 - mz);
+cot = t1;
+tResult = t1;
+colr4:
+if (vx == 0.0) {goto col5;}
+t1 = (mx - x0) / vx + 0.000001;
+if (t1 + 0.00002 < rayFirst) {goto col5;}
+if (t1 > tResult) {goto col5;}
+y = y0 + vy * t1 - 0.5;
+z = z0 + vz * t1 - mz - 0.5;
+t2 = (y * y) + (z * z);
+if (t2 > CUT_EMI_R_2) {goto col5;}
+t1 = t1 - 0.0001;
+cox = x0 + vx * t1;
+coy = y0 + vy * t1;
+coz = z0 + vz * t1;
+conx = -1.0;
+cony = 0.0;
+conz = 0.0;
+cot = t1;
+tResult = t1;
+
+					} else if (state == 3) {
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.97;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (dz * dz) + 0.0216; // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.09 * e);
+t1 = (2.0 * b * f) - (0.09 * a);
+t0 = (f * f) - (0.09 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto cold1;}
+tmp = tmp + tShi;
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.5;
+dy = coy - 0.5;
+dz = coz - mz - 0.97;
+f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.0234);
+nx = dx * f;
+ny = dy * f;
+nz = dz * (f + 0.18);
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+
+cold1:
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.7;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (0.04 * 2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (0.04 * dz * dz) + 0.0084; // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+temp = e + (vz * vz * 0.04);
+t3 = 2.0 * b * temp;
+t2 = (2.0 * temp * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+temp = 1 / (temp * temp);
+if (!Solve(temp * t3,temp * t2,temp * t1,temp * t0, tStart - tShi, tEnd - tShi, tmp)) {goto cold2;}
+tmp = tmp + tShi;
+if (tmp > tResult) {goto cold2;}
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.5;
+dy = coy - 0.5;
+dz = coz - mz - 0.7;
+f = 4.0 * ((dx * dx) + (dy * dy) + (0.04 * dz * dz) - 0.0116);
+nx = dx * f;
+ny = dy * f;
+nz = 0.2 * dz * (f + 0.08);
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+
+cold2:
+dx = x1 - mx - 0.5;
+dy = y1 - 0.5;
+dz = z1 - mz - 0.40;
+a = 2.0 * ((vx * dx) + (vy * dy)); // r: t
+b = a + (2.0 * vz * dz); // l^1 : t
+c = (dx * dx) + (dy * dy); // r: 1
+f = c + (dz * dz); // l^1: 1
+e = (vx * vx) + (vy * vy); // r: t^2
+t3 = 2.0 * b;
+t2 = (2.0 * f) + (b * b) - (0.04 * e);
+t1 = (2.0 * b * f) - (0.04 * a);
+t0 = (f * f) - (0.04 * c);
+if (!Solve(t3,t2,t1,t0, tStart - tShi, tEnd - tShi, tmp)) {goto cold3;}
+tmp = tmp + tShi;
+if (tmp > tResult) {goto cold3;}
+
+tResult = tmp;
+t2 = tmp - 0.000001;
+coy = y0 + vy * t2;
+cox = x0 + vx * t2;
+coz = z0 + vz * t2;
+dx = cox - mx - 0.5;
+dy = coy - 0.5;
+dz = coz - mz - 0.40;
+f = 4.0 * ((dx * dx) + (dy * dy) + (dz * dz) - 0.02);
+nx = dx * f;
+ny = dy * f;
+nz = dz * (f + 0.08);
+e = 1.0 / sqrt((nx * nx) + (ny * ny) + (nz * nz));
+conx = nx * e;
+cony = ny * e;
+conz = nz * e;
+cot = tmp;
+
+cold3:
+a = (vz * vz * 1.44) + (vy * vy) + (vx * vx);
+z = mz + 0.1 - z0;
+y = 0.5 - y0;
+x = mx + 0.5 - x0;
+k = (1.44 * z * vz) + (y * vy) + (x * vx);
+c = (1.44 * z * z) + (y * y) + (x * x) - 0.09;
+D = k * k - a * c;
+if (D < 0.0) {goto cold4;}
+D = sqrt(D);
+a = 1 / a;
+t1 = (k - D) * a;
+if (t1 < rayFirst) {t1 = (k + D) * a;}
+if (t1 < rayFirst) {goto cold4;}
+if (t1 > tResult) {goto cold4;}
+t1 = t1 - 0.0001;
+coz = z0 + vz * t1;
+if (coz < mz) { goto cold4;}
+coy = y0 + vy * t1;
+cox = x0 + vx * t1;
+conz = 3.333333333333333333 * 1.2 * (coz - mz - 0.1);
+cony = 3.333333333333333333 * (coy - 0.5);
+conx = 3.333333333333333333 * (cox - 0.5 - mx);
+cot = t1;
+tResult = t1;
+cold4:
+if (vz == 0.0) {goto col5;}
+t1 = (mz - z0) / vz + 0.000001;
+if (t1 + 0.00002 < rayFirst) {goto col5;}
+if (t1 > tResult) {goto col5;}
+y = y0 + vy * t1 - 0.5;
+x = x0 + vx * t1 - mx - 0.5;
+t2 = (y * y) + (x * x);
+if (t2 > CUT_EMI_R_2) {goto col5;}
+t1 = t1 - 0.0001;
+coz = z0 + vz * t1;
+coy = y0 + vy * t1;
+cox = x0 + vx * t1;
+conz = -1.0;
+cony = 0.0;
+conx = 0.0;
+cot = t1;
+tResult = t1;
+
+					}
+col5:
+					if (tResult < LAST_T) {
+rayLast = cot;
+						x = cox; y = coy; z = coz; nx = conx; ny = cony; nz = conz;
+						tmp = vx * nx + vy * ny + vz * nz; tmp = tmp + tmp;
+						rx = tmp * nx - vx;
+						ry = tmp * ny - vy;
+						rz = tmp * nz - vz;
+
+						mat = &(materials[MAT_DIF_CON]);
+						for (int i = 0; i < 3; i++) {
+							if (CanSee(i, x, y, z, lensed, colorFactor, lx, ly, lz)) {
+//								intense = DIFFUSE(i) * colorFactor;
+//								ADD_COLOR
+								intense = SPECULAR(i);
+								if (intense < 0.0) {
+//									intense = intense * intense;
+//									intense = intense * intense * colorFactor;
+									intense = -2.0 * intense * intense * intense * colorFactor;
+									ADD_COLOR
+								}
+							}
+						}
+						clr[0] += 0.35; clr[1] += 0.25; clr[2] += 0.15;
+						RETURN_COLOR
+					}
+					break;
+
 				case EMITTER:
 					tResult = LAST_T;
 					doThing = -1;
@@ -1468,7 +2532,7 @@ cot = t1;
 tResult = t1; doThing = 3;
 emil4:
 if (vx == 0.0) {goto emi5;}
-t1 = (mx + 1.0 - x0) / vx;
+t1 = (mx + 1.0 - x0) / vx + 0.000001;
 if (t1 < rayFirst) {goto emi5;}
 if (t1 > tResult) {goto emi5;}
 y = y0 + vy * t1 - 0.5;
@@ -1586,7 +2650,7 @@ cot = t1;
 tResult = t1; doThing = 3;
 emiu4:
 if (vz == 0.0) {goto emi5;}
-t1 = (mz + 1.0 - z0) / vz;
+t1 = (mz + 1.0 - z0) / vz + 0.000001;
 if (t1 < rayFirst) {goto emi5;}
 if (t1 > tResult) {goto emi5;}
 y = y0 + vy * t1 - 0.5;
@@ -1705,7 +2769,7 @@ cot = t1;
 tResult = t1; doThing = 3;
 emir4:
 if (vx == 0.0) {goto emi5;}
-t1 = (mx - x0) / vx;
+t1 = (mx - x0) / vx + 0.000001;
 if (t1 + 0.00002 < rayFirst) {goto emi5;}
 if (t1 > tResult) {goto emi5;}
 y = y0 + vy * t1 - 0.5;
@@ -1824,7 +2888,7 @@ cot = t1;
 tResult = t1; doThing = 3;
 emid4:
 if (vz == 0.0) {goto emi5;}
-t1 = (mz - z0) / vz;
+t1 = (mz - z0) / vz + 0.000001;
 if (t1 + 0.00002 < rayFirst) {goto emi5;}
 if (t1 > tResult) {goto emi5;}
 y = y0 + vy * t1 - 0.5;

@@ -1,8 +1,15 @@
-del theRayTracingGame.exe
-mkdir TheRayTracingGame
-copy distr\*.* TheRayTracingGame
-7z a -sfx7z.sfx theRayTracingGame.exe TheRayTracingGame
-del /Q TheRayTracingGame\*.* 
-rmdir TheRayTracingGame
-upx -9 theRayTracingGame.exe
+del theRayTracingGameRu.exe
+mkdir TheRayTracingGameRu
+copy distr-ru\*.* TheRayTracingGameRu
+7z a -sfx7z.sfx theRayTracingGameRu.exe TheRayTracingGameRu
+del /Q TheRayTracingGameRu\*.* 
+rmdir TheRayTracingGameRu
+upx -9 theRayTracingGameRu.exe
 
+del theRayTracingGameEn.exe
+mkdir TheRayTracingGameEn
+copy distr-en\*.* TheRayTracingGameEn
+7z a -sfx7z.sfx theRayTracingGameEn.exe TheRayTracingGameEn
+del /Q TheRayTracingGameEn\*.* 
+rmdir TheRayTracingGameEn
+upx -9 theRayTracingGameEn.exe

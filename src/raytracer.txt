@@ -14,3 +14,200 @@ dx * vx + ... =: k
  t^2 - 2 * k * t + c = 0
  D = k^2 - c
  t1,2 = k +- sqrt(D)
+
+// solve quartic equation using either quadratic, Ferrari's or Neumark's algorithm
+/*int quartic(const number a, const number b, const number c, const number d, number *rts) const {
+	int k;
+	number roots[4];
+	int j,nq;
+
+	number odd = (a < 0.0) ? -a : a;
+	odd += (c < 0.0) ? -c : c;
+	number even = (b < 0.0) ? -b : b;
+	even += (d < 0.0) ? -d : d;
+
+	if (odd < even * doubtol) {
+		nq = qudrtc(b, d, roots, b * b - 4.0 * d);
+		j = 0;
+		for (k = 0; k < nq; ++k) {
+			if (roots[k] > 0.0) {
+				rts[j] = sqrt(roots[k]);
+				rts[j + 1] = -rts[j];
+				++j;
+				++j;
+			}
+		}
+		return j;
+	}
+	k = (a < 0.0) ? 1 : 0;
+	k += (b < 0.0) ? k + 1 : k;
+	k += (c < 0.0) ? k + 1 : k;
+	k += (d < 0.0) ? k + 1 : k;
+	switch (k) {
+		case 0:return ferrari(a, b, c, d, rts);
+		case 1:return neumark(a, b, c, d, rts);
+		case 2:return neumark(a, b, c, d, rts);
+		case 3:return ferrari(a, b, c, d, rts);
+		case 4:return ferrari(a, b, c, d, rts);
+		case 5:return neumark(a, b, c, d, rts);
+		case 6:return ferrari(a, b, c, d, rts);
+		case 7:return ferrari(a, b, c, d, rts);
+		case 8:return neumark(a, b, c, d, rts);
+		case 9:return ferrari(a, b, c, d, rts);
+		case 10:return ferrari(a, b, c, d, rts);
+		case 11:return neumark(a, b, c, d, rts);
+		case 12:return ferrari(a, b, c, d, rts);
+		case 13:return ferrari(a, b, c, d, rts);
+		case 14:return ferrari(a, b, c, d, rts);
+		case 15:return ferrari(a, b, c, d, rts);
+	}
+	return 0;
+}*/
+
+// solve the quartic equation; method: Neumark
+/*int neumark(const number a, const number b, const number c, const number d, number *rts) const {
+	number gdisrt, hdisrt, g2, h2;
+	number v1[4], v2[4];
+
+	number asq = a * a;
+
+	number p = -b * 2.0;
+	number q = b * b + a * c - 4.0 * d;
+	number r = (c - a * b) * c + asq * d;
+	number y = cubic(p, q, r);
+
+	number bmy = b - y;
+	number y4 = y * 4.0;
+	number d4 = d * 4.0;
+	number bmysq = bmy * bmy;
+	number gdis = asq - y4;
+	number hdis = bmysq - d4;
+	if ((gdis < 0.0) || (hdis < 0.0)) {
+		return (0);
+	}
+
+	number g1 = a * 0.5;
+	number h1 = bmy * 0.5;
+	number gerr = asq + y4;
+	number herr = hdis;
+	if (d > 0.0) {
+		herr = bmysq + d4;
+	}
+
+	if ((y < 0.0) || (herr * gdis > gerr * hdis)) {
+		gdisrt = sqrt(gdis);
+		g2 = gdisrt * 0.5;
+		if (gdisrt != 0.0) {
+			h2 = (a * h1 - c) / gdisrt;
+		} else {
+			h2 = 0.0;
+		}
+	} else {
+		hdisrt = sqrt(hdis);
+		h2 = hdisrt * 0.5;
+		if (hdisrt != 0.0) {
+			g2 = (a * h1 - c) / hdisrt;
+		} else {
+			g2 = 0.0;
+		}
+	}
+	number h = h1 - h2;
+	number hh = h1 + h2;
+	number hmax = hh;
+	if (hmax < 0.0) {
+		hmax = -hmax;
+	}
+	if (hmax < h) {
+		hmax = h;
+	}
+	if (hmax < -h) {
+		hmax = -h;
+	}
+	if ((h1 > 0.0) && (h2 > 0.0)) {
+		h = d / hh;
+	}
+	if ((h1 < 0.0) && (h2 < 0.0)) {
+		h = d / hh;
+	}
+	if ((h1 > 0.0) && (h2 < 0.0)) {
+		hh = d / h;
+	}
+	if ((h1 < 0.0) && (h2 > 0.0)) {
+		hh = d / h;
+	}
+	if (h > hmax) {
+		h = hmax;
+	}
+	if (h < -hmax) {
+		h = -hmax;
+	}
+	if (hh > hmax) {
+		hh = hmax;
+	}
+	if (hh < -hmax) {
+		hh = -hmax;
+	}
+
+	number g = g1 - g2;
+	number gg = g1 + g2;
+	number gmax = gg;
+	if (gmax < 0.0) {
+		gmax = -gmax;
+	}
+	if (gmax < g) {
+		gmax = g;
+	}
+	if (gmax < -g) {
+		gmax = -g;
+	}
+	if ((g1 > 0.0) && (g2 > 0.0)) {
+		g = y / gg;
+	}
+	if ((g1 < 0.0) && (g2 < 0.0)) {
+		g = y / gg;
+	}
+	if ((g1 > 0.0) && (g2 < 0.0)) {
+		gg = y / g;
+	}
+	if ((g1 < 0.0) && (g2 > 0.0)) {
+		gg = y / g;
+	}
+	if (g > gmax) {
+		g = gmax;
+	}
+	if (g < -gmax) {
+		g = -gmax;
+	}
+	if (gg > gmax) {
+		gg = gmax;
+	}
+	if (gg < -gmax) {
+		gg = -gmax;
+	}
+
+	int n1 = qudrtc(gg, hh, v1, gg * gg - 4.0 * hh);
+	int n2 = qudrtc(g, h, v2, g * g - 4.0 * h);
+	int nquar = n1 + n2;
+	rts[0] = v1[0];
+	rts[1] = v1[1];
+	rts[n1 + 0] = v2[0];
+	rts[n1 + 1] = v2[1];
+	return (nquar);
+}*/
+
+//	bool Solve(const number A, const number B,const number C,const number D,const number E,const number tStart,const number tEnd, number &result) const {
+//		if (A == 0.0) {return false; /* todo: cordano */}
+//		number a = B / A;
+//		number b = C / A;
+//		number c = D / A;
+//		number d = E / A;
+
+		//int sol = quartic(a, b, c, d, rts);
+		//int sol = neumark(a, b, c, d, rts);
+
+// solve the quartic equation; method: Ferrari-Lagrange
+
+
+// solve the quadratic equation: x**2+b*x+c = 0
+
+//		if ((tStart > 1.0)&&(sol>0)&&(result == LAST_T)){fwprintf_s(debugFile,L"%d (%f %f %f %f %f) [%f %f %f %f] {%f %f}\n",sol,A,B,C,D,E,rts[0],rts[1],rts[2],rts[3],tStart,tEnd);}
