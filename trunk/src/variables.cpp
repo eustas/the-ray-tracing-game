@@ -64,3 +64,5 @@ bool rayDensity[4];
 
 PARTICLE* particles;
 bool onBattery = false;
+
+GREMLIN gremlins[5];

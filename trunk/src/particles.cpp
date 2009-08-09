@@ -63,6 +63,10 @@ void ProcessParticles() {
 			particles[i].fuel -= particles[i].burnOut;
 			particles[i].x += particles[i].dx;
 			particles[i].y += particles[i].dy;
+			if ((particles[i].burnOut < 0) && (particles[i].fuel > 255)) {
+				particles[i].burnOut = -particles[i].burnOut;
+				particles[i].fuel -= particles[i].burnOut;
+			}
 		}
 	}
 }

@@ -1,3 +1,4 @@
+
 int alarm, phaseF, nextQuant = 0;
 
 long rDownX, rDownY;
@@ -110,6 +111,9 @@ void InitLevel() {
 	ClearParticles();
 	StartSound(FILE_RECHARGE);
 	alarm = ALARM_OK;
+	for (int i=0;i<5;i++) {
+		gremlins[i].alive = false;
+	}
 }
 
 void StartGame() {
@@ -478,6 +482,34 @@ void RenderGame() {
 	}
 	if (((subFrame % 2) < 1) && ((subFrame % 5) < 3) && ((subFrame % 7) < 5)) {
 		phaseF++;
+	}
+	if ((rand() % 300) <= levelData.gBorn) {
+		int g = rand() % levelData.maxG;
+		if (!gremlins[g].alive) {
+			gremlins[g].alive = true;
+			gremlins[g].x = 32 + rand() % 960;
+			gremlins[g].y = 32 + rand() % 576;
+		}
+	}
+	int dx, dy, live, burn;
+	int parti = NextFreeParticle(0);
+	for (int i = 0; i < levelData.maxG; i++) {
+		if (gremlins[i].alive) {
+			while (true) {
+				dx = rand() % 13 - 6;
+				dy = rand() % 13 - 6;
+				if (((dx * dx) + (dy * dy)) <= 36) {break;}
+			}
+			live = rand() % 15 + 6;
+			int color = rand() % 3;
+			parti = SetupParticle(parti, 1, -(255 / live), gremlins[i].x - live * dx, gremlins[i].y - live * dy, dx, dy, blowR[color], blowG[color], blowB[color]);
+			dx = gremlins[i].x + (rand() % (levelData.gSpeed * 4 + 1)) - levelData.gSpeed * 2;
+			if (dx < 32) {dx = 32;} if (dx >= 960 + 32) {dx = 960 + 31;}
+			dy = gremlins[i].y + (rand() % (levelData.gSpeed * 4 + 1)) - levelData.gSpeed * 2;
+			if (dy < 32) {dy = 32;} if (dy >= 576 + 32) {dy = 576 + 31;}
+			gremlins[i].x = dx;
+			gremlins[i].y = dy;
+		}
 	}
 
 	overloadPlus = -COOL_DOWN;
