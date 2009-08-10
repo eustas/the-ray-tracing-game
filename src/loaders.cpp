@@ -121,7 +121,7 @@ void LoadLevel(WCHAR* fileName, LEVEL* level) {
 	fgets(buf, 40, in);
 	level->maxG = buf[0] - 'a';
 	level->gBorn = buf[1] - 'a';
-	level->gSpeed = buf[2] - 'a';
+	level->gSpeed = ((buf[2] - 'a') + 1) * 4;
 	level->gEvil = buf[3] - 'a';
 
 	fgetws(level->nextLevel, 256, in);

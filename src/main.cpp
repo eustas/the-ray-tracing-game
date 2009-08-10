@@ -28,6 +28,7 @@ void Render() {
 }
 
 INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, INT) {
+	srand(GetTickCount());
 	_wfopen_s(&debugFile, FILE_DEBUG, L"w");
 	for (int i = 0; i < 8; i++) {
 		Media(quantsL[i]);
