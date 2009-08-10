@@ -18,7 +18,7 @@ number doubmax; // approx square root of max number number
 number doubmin; // smallest number number
 //number doubtol; // tolerance of number numbers
 
-number lightAlphaDelta = 0.005;
+number lightAlphaDelta = 0.002;
 double lightAlpha = 0.0;
 
 int stohasticIdx = -1;
