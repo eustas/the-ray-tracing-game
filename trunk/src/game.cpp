@@ -117,6 +117,7 @@ void InitLevel() {
 }
 
 void StartGame() {
+	srand(GetTickCount());
 	rayDist = 2.5;
 	rayAlpha = PI_2;
 	rayBeta = PI_2 / 4;
@@ -386,8 +387,14 @@ void CastRay() {
 			} else if (ya == yb) {ndir = (40 - dir) & 0xF;}
 			else {
 				if (qcells[xb + 32 * ya] == MBLOCK) {
-					if (qcells[xa + 32 * yb] == MBLOCK) { overloadPlus = PARTIAL_REFLECT; break;}
-					ndir = (48 - dir) & 0xF;
+					if (qcells[xa + 32 * yb] == MBLOCK) {
+						if ((dir & 0x1) == 0) {
+							overloadPlus = PARTIAL_REFLECT; break;
+						}
+						ndir = edgeDir[dir];
+					} else {
+						ndir = (48 - dir) & 0xF;
+					}
 				} else if (qcells[xa + 32 * yb] == MBLOCK) {ndir = (40 - dir) & 0xF;}
 				else {
 					if ((xa - xb) == (ya - yb)) {ndir = (44 - dir) & 0xF;}
@@ -483,29 +490,33 @@ void RenderGame() {
 	if (((subFrame % 2) < 1) && ((subFrame % 5) < 3) && ((subFrame % 7) < 5)) {
 		phaseF++;
 	}
-	if ((rand() % 300) <= levelData.gBorn) {
-		int g = rand() % levelData.maxG;
-		if (!gremlins[g].alive) {
-			gremlins[g].alive = true;
-			gremlins[g].x = 32 + rand() % 960;
-			gremlins[g].y = 32 + rand() % 576;
+	if (levelData.maxG > 0) {
+		if ((rand() % 500) <= levelData.gBorn) {
+			int g = rand() % levelData.maxG;
+			if (!gremlins[g].alive) {
+				gremlins[g].alive = true;
+				gremlins[g].x = 32 + rand() % 960;
+				gremlins[g].y = 32 + rand() % 576;
+			}
 		}
 	}
 	int dx, dy, live, burn;
 	int parti = NextFreeParticle(0);
 	for (int i = 0; i < levelData.maxG; i++) {
 		if (gremlins[i].alive) {
-			while (true) {
-				dx = rand() % 13 - 6;
-				dy = rand() % 13 - 6;
-				if (((dx * dx) + (dy * dy)) <= 36) {break;}
+			for (int j = 0; j < 3; j++) {
+				while (true) {
+					dx = rand() % 13 - 6;
+					dy = rand() % 13 - 6;
+					if (((dx * dx) + (dy * dy)) <= 36) {break;}
+				}
+				live = (rand() % 15) + 6;
+				int color = (rand() % 3);
+				parti = SetupParticle(parti, 1, -(255 / live), gremlins[i].x - live * dx, gremlins[i].y - live * dy, dx, dy, blowR[color], blowG[color], blowB[color]);
 			}
-			live = rand() % 15 + 6;
-			int color = rand() % 3;
-			parti = SetupParticle(parti, 1, -(255 / live), gremlins[i].x - live * dx, gremlins[i].y - live * dy, dx, dy, blowR[color], blowG[color], blowB[color]);
-			dx = gremlins[i].x + (rand() % (levelData.gSpeed * 4 + 1)) - levelData.gSpeed * 2;
+			dx = gremlins[i].x + (rand() % (levelData.gSpeed * 2 + 1)) - levelData.gSpeed;
 			if (dx < 32) {dx = 32;} if (dx >= 960 + 32) {dx = 960 + 31;}
-			dy = gremlins[i].y + (rand() % (levelData.gSpeed * 4 + 1)) - levelData.gSpeed * 2;
+			dy = gremlins[i].y + (rand() % (levelData.gSpeed * 2 + 1)) - levelData.gSpeed;
 			if (dy < 32) {dy = 32;} if (dy >= 576 + 32) {dy = 576 + 31;}
 			gremlins[i].x = dx;
 			gremlins[i].y = dy;
