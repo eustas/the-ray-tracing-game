@@ -195,15 +195,21 @@ void ProcessGameInput() {
 	if ((Key(0x57) || Key(VK_UP)) && (controlY > 0)) { controlY--; }
 	if ((Key(0x41) || Key(VK_LEFT)) && (controlX > 0)) { controlX--; }
 	if ((Key(0x44) || Key(VK_RIGHT)) && (controlX < 14)) { controlX++; }
-	if ((Key(0x51) || Key(VK_SHIFT)) && (levelData.cells[controlX + 15 * controlY].type == MIRROR)) {
+	if (Key(0x51) || Key(VK_SHIFT)) {
+		if (levelData.cells[controlX + 15 * controlY].type == MIRROR) {
 		//if ((subFrame & 0x3) == 0) {
 			levelData.cells[controlX + 15 * controlY].state = (char)((levelData.cells[controlX + 15 * controlY].state + 1) & 0xF);
 		//}
+		}
+		KillGremlin();
 	}
-	if ((Key(0x45) || Key(VK_CONTROL)) && (levelData.cells[controlX + 15 * controlY].type == MIRROR)) {
+	if (Key(0x45) || Key(VK_CONTROL)) {
+		if (levelData.cells[controlX + 15 * controlY].type == MIRROR) {
 		//if ((subFrame & 0x3) == 0) {
 			levelData.cells[controlX + 15 * controlY].state = (char)((levelData.cells[controlX + 15 * controlY].state + 15) & 0xF);
 		//}
+		}
+		KillGremlin();
 	}
 	if (Key(0x47) || Key(VK_DELETE)) { tmp = rayAlpha - 0.09f; if (tmp < 0.0f) {tmp += PIx2;} rayAlpha = tmp;}
 	if (Key(0x4A) || Key(VK_NEXT)) { tmp = rayAlpha + 0.09f; if (tmp > PIx2) {tmp -= PIx2;} rayAlpha = tmp;}
