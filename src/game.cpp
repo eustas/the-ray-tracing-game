@@ -6,6 +6,21 @@ bool rDown = false;
 
 int rWin;
 
+void KillGremlin() {
+	for (int i = 0; i < levelData.maxG; i++) {
+		if (gremlins[i].alive) {
+			int x = (gremlins[i].x - 32) / 64;
+			int y = (gremlins[i].y - 32) / 64;
+			if ((controlX == x) && (controlY == y)) {
+				gremlins[i].alive = false;
+				score += 60;
+				diagnose = DIAGNOSE_BUG_FIXED; diagnoseState = 256;
+			}
+		}
+	}
+}
+
+
 void GameRDown(int win) {
 	POINT pnt;
 
@@ -500,7 +515,7 @@ void RenderGame() {
 			}
 		}
 	}
-	int dx, dy, live, burn;
+	int dx, dy, live, burn, idx;
 	int parti = NextFreeParticle(0);
 	for (int i = 0; i < levelData.maxG; i++) {
 		if (gremlins[i].alive) {
@@ -520,6 +535,14 @@ void RenderGame() {
 			if (dy < 32) {dy = 32;} if (dy >= 576 + 32) {dy = 576 + 31;}
 			gremlins[i].x = dx;
 			gremlins[i].y = dy;
+			dx = (dx - 32) / 64;
+			dy = (dy - 32) / 64;
+			idx = dx + (15 * dy);
+			if (levelData.cells[idx].type == MIRROR) {
+				if ((rand() % 60) <= levelData.gEvil) {
+					levelData.cells[idx].state = (levelData.cells[idx].state + 15 + (rand() % 3)) & 0xF;
+				}
+			}
 		}
 	}
 

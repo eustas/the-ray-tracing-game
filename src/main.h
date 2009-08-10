@@ -174,6 +174,7 @@ void OfferGameExit();
 void GameRDown(int win);
 void GameRUp();
 void GameMMove();
+void KillGremlin();
 
 // MAIN
 void Render();
